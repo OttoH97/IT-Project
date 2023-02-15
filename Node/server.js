@@ -9,7 +9,7 @@ var myAPIKey= 'dc55e8bbc6b73dbb17c5ecf360a0aeb1'
 
 var options = {
 
-    host:'weldcude.ky.local',
+    host:'weldcube.ky.local',
 
     port: 80,
 
