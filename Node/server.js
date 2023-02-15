@@ -31,7 +31,7 @@ http.request(options, function(res){
     });
 
     res.on('end', function(){
-        var values = JSON.parse(body);
+        var values = body;
         console.log(values);
     });
 
