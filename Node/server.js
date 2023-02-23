@@ -23,7 +23,7 @@ var options = {
 
 };
 
-http.request(options, function(res){
+app.get(options, function(res){
     var body ='';
 
     res.on('data', function(chunk){
@@ -36,3 +36,4 @@ http.request(options, function(res){
     });
 
 }).end();
+
