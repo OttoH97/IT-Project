@@ -1,4 +1,6 @@
 var express = require(express);
+var xmlparser = require('express-xml-bodyparser');
+app.use(xmlparser());
 
 var app = express();
 
@@ -22,6 +24,12 @@ var options = {
       }
 
 };
+
+router.post(options, function(req, res, next) {
+    console.log('Raw XML: ' + req.rawBody);
+    console.log('Parsed XML: ' + JSON.stringify(req.body));
+
+  });
 
 http.request(options, function(res){
     var body ='';
