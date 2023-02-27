@@ -8,9 +8,8 @@ function App() {
   const [welds, setWelds] = useState([]);
 
   useEffect(() => {
-    fetch('/welds')
-      .then(response => response.json())
-      .then(data => setWelds(data))
+    axios.get('/welds')
+      .then(response => setWelds(response.data))
       .catch(error => console.error(error));
   }, []);
 
@@ -19,7 +18,7 @@ function App() {
       <pre>{JSON.stringify(welds, null, 2)}</pre>
     </div>
   );
-  
 }
+
 
 export default App;
