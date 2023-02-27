@@ -5,34 +5,20 @@ import axios from 'axios';
 
 function App() {
 
-    const [xmlData, setXmlData] = useState(null);
-  
-    useEffect(() => {
-      axios.get('/welds')
-        .then(response => {
-          // Parse XML data using xml2js library
-          parseString(response.data, function(err, result) {
-            if (err) {
-              console.error(err);
-            } else {
-              setXmlData(result);
-            }
-          });
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    }, []);
-  
-    return (
-      <div>
-        {xmlData ? (
-          <pre>{JSON.stringify(xmlData, null, 2)}</pre>
-        ) : (
-          <p>Loading XML data...</p>
-        )}
-      </div>
-    );
+  const [welds, setWelds] = useState([]);
+
+  useEffect(() => {
+    fetch('/welds')
+      .then(response => response.json())
+      .then(data => setWelds(data))
+      .catch(error => console.error(error));
+  }, []);
+
+  return (
+    <div>
+      <pre>{JSON.stringify(welds, null, 2)}</pre>
+    </div>
+  );
   
 }
 
