@@ -1,15 +1,15 @@
-var express = require(express);
+var express = require('express');
 var xmlparser = require('express-xml-bodyparser');
-app.use(xmlparser());
+var http = require('http');
+var parseString = require('xml2js').parseString; // import xml2js library for parsing XML
 
 var app = express();
 
-var http = require('http');
+var myAPIKey = 'dc55e8bbc6b73dbb17c5ecf360a0aeb1';
 
-var myAPIKey= 'dc55e8bbc6b73dbb17c5ecf360a0aeb1'
+app.use(xmlparser());
 
 
-app.get('/welds', (req, res) => {
     const options = {
       host: 'weldcube.ky.local',
       port: 80,
@@ -21,25 +21,28 @@ app.get('/welds', (req, res) => {
       }
     };
   
-    http.get(options, (response) => {
-      let data = '';
-  
-      // append incoming data to the data variable
-      response.on('data', (chunk) => {
-        data += chunk;
-      });
-  
-      // when the response is complete, send the XML back to the client
-      response.on('end', () => {
-        res.set('Content-Type', 'application/xml');
-        res.send(data);
-      });
-    }).on('error', (error) => {
-      console.error(error);
-      res.status(500).send('An error occurred');
+ // Make API request
+ http.request(options, function(response) {
+  var str = '';
+  response.on('data', function(chunk) {
+    str += chunk;
+  });
+
+  response.on('end', function() {
+    // Parse XML data using xml2js library
+    parseString(str, function(err, result) {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Error parsing XML data');
+      } else {
+        // Send parsed XML data to React front-end
+        res.send(result);
+      }
     });
   });
-  
-  app.listen(3000, () => {
-    console.log('Server listening on port 3000');
-  });
+}).end();
+
+
+app.listen(3000, () => {
+console.log('Server listening on port 3000');
+});

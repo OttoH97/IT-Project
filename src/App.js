@@ -1,23 +1,39 @@
 import logo from './logo.svg';
 import './App.css';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 function App() {
-  const [xmlData, setXmlData] = useState('');
 
-  useEffect(() => {
-    fetch('/welds')
-      .then(response => response.text())
-      .then(xml => {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xml, 'application/xml');
-        setXmlData(xmlDoc.documentElement.innerHTML);
-      })
-      .catch(error => console.error(error));
-  }, []);
-
-  return (
-    <div dangerouslySetInnerHTML={{ __html: xmlData }}></div>
-  );
+    const [xmlData, setXmlData] = useState(null);
+  
+    useEffect(() => {
+      axios.get('/welds')
+        .then(response => {
+          // Parse XML data using xml2js library
+          parseString(response.data, function(err, result) {
+            if (err) {
+              console.error(err);
+            } else {
+              setXmlData(result);
+            }
+          });
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }, []);
+  
+    return (
+      <div>
+        {xmlData ? (
+          <pre>{JSON.stringify(xmlData, null, 2)}</pre>
+        ) : (
+          <p>Loading XML data...</p>
+        )}
+      </div>
+    );
+  
 }
 
 export default App;
