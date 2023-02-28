@@ -27,21 +27,31 @@ const transporter = nodeMailer.createTransport({
         pass: process.env.EMAIL_PASS
     }
 });
+//Mailoptions.to määritellään JSON-listan mappauksessa. 
 const Mailoptions  = {
     from: 'WeldMailer123@gmail.com',
-    to: 'ville.froberg@edu.savonia.fi',
     subject: 'testataan',
     text: "tämä olla viesti, jee", 
 };
-//transporterin avulla lähettäminen
-transporter.sendMail(Mailoptions, function(err, info){
-    if(err){
-        console.log(err);
-        return;
-    }
-    console.log("Lähetetty " + info.response);
-})
-
+//Tämä kohta korvataan erillisellä Json tiedostolla/objektilla
+const recipients = {
+    'John Doe': 'johndoe@example.com',
+    'Jane Doe': 'janedoe@example.com',
+    'Bob Smith': 'bobsmith@example.com'
+  };
+//for -loopissa käydään läpi jokainen objektissa oleva sähköposti
+  for (const [name, email] of Object.entries(recipients)) {
+    Mailoptions.to = email;
+    Mailoptions.text = `Hello ${name},\n\n${Mailoptions.text}`;
+    
+    transporter.sendMail(Mailoptions, (error, info) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log(`Viesti lähetetty: ${name} (${email}): ` + info.response);
+      }
+    });
+  }
 
 const hostname = '127.0.0.1';
 const port = 3000;
