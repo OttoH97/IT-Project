@@ -2,10 +2,12 @@ var express = require('express');
 require('dotenv').config()
 var nodeMailer = require('nodemailer');
 var app = express();
+let cors = require('cors');
+app.use(cors());
 
 var http = require('http');
 
-var myAPIKey= 'dc55e8bbc6b73dbb17c5ecf360a0aeb1'
+
 
 
 
@@ -53,47 +55,21 @@ const recipients = {
     });
   }
 
-const hostname = '127.0.0.1';
-const port = 3000;
-
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World');
-});
-
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+  app.get('/welds', async (req, res) => {
+    const url = 'http://weldcube.ky.local/api/v4/Welds';
+    const headers = {
+      'api_key': process.env.MY_API_KEY,
+      'Accept': 'application/json'
+    };
+  
+    try {
+      const response = await fetch(url, { headers });
+      const data = await response.json();
+      res.send(data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
   });
-
-
-/*var options = {
-
-    host:'weldcube.ky.local',
-
-    port: 80,
-
-    path:'/api/v4/Welds',
-
-    method:'GET',
-
-    headers: {
-        "api_key": myAPIKey
-      }
-
-};
-
-
-http.request(options, function(res){
-    var body ='';
-
-    res.on('data', function(chunk){
-        body += chunk;
-    });
-
-    res.on('end', function(){
-        var values = body;
-        console.log(values);
-    });
-
-}).end()*/
+  
+  app.listen(4000, () => console.log('Server running on port 4000'));
