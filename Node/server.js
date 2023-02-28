@@ -1,4 +1,5 @@
 var express = require('express');
+require('dotenv').config()
 var nodeMailer = require('nodemailer');
 var app = express();
 
@@ -10,23 +11,24 @@ var myAPIKey= 'dc55e8bbc6b73dbb17c5ecf360a0aeb1'
 
 
 
+
 //Mailserverin luonti
 const transporter = nodeMailer.createTransport({
-    host: 'smtp.office365.com',
+    host: 'smtp.gmail.com',
     port: '587',
     secure: false,
     tls: {
         ciphers: "SSLv3",
         rejectUnauthorized: false,
         },
-        //Outlookilla lähettäessä tarvitsee autentikoinnin, salasanan jätin poies
+        //Autentikointiin tarvittavat tiedot .env tiedostossa. 
     auth:{
-        user:'viliho.fr@hotmail.com',
-        pass:''
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 const Mailoptions  = {
-    from: 'viliho.fr@hotmail.com',
+    from: 'WeldMailer123@gmail.com',
     to: 'ville.froberg@edu.savonia.fi',
     subject: 'testataan',
     text: "tämä olla viesti, jee", 
@@ -55,7 +57,7 @@ server.listen(port, hostname, () => {
   });
 
 
-var options = {
+/*var options = {
 
     host:'weldcube.ky.local',
 
@@ -84,4 +86,4 @@ http.request(options, function(res){
         console.log(values);
     });
 
-}).end()
+}).end()*/
