@@ -1,7 +1,8 @@
 var express = require('express');
 var nodeMailer = require('nodemailer');
 var app = express();
-const fetch = require('node-fetch');
+let cors = require("cors");
+app.use(cors());
 
 // other Express middleware and configurations
 var myAPIKey = 'dc55e8bbc6b73dbb17c5ecf360a0aeb1';
