@@ -6,6 +6,7 @@ let cors = require('cors');
 app.use(cors());
 
 var http = require('http');
+const { info } = require('console');
 
 
 
@@ -72,6 +73,22 @@ const recipients = {
         jsonObject.WeldInfos.forEach(weldInfo=>{
             const state = weldInfo.State;
             console.log(`State value: ${state}`);
+            if(state === 'NotOk' && !sentEmails.includes(state)) {
+                for (const [name, email] of Object.entries(recipients)) {
+                    Mailoptions.to = email;
+                    Mailoptions.text = `Hello ${name}, \n\n${Mailoptions.text}`;
+
+                    transporter.sendMail(Mailoptions, (error, info) => {
+                        if (error) {
+                            console.log(error);
+                        } else {
+                            console.log(`Viesti lähetetty: ${name} (${email}): ` + info.response)
+                        }
+                        sentEmails.push(state);
+                        console.log(sentEmails);
+                    });
+                }
+            }
         })
       })
     } catch (error) {
