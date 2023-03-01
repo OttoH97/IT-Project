@@ -13,7 +13,6 @@ function App() {
   const location = useLocation();
   const tulos = location.pathname.split('/')
   let id = tulos[1];
-  console.log(id)
 
   const updateWidth = () => {
     const width = window.innerWidth;
@@ -46,7 +45,7 @@ function App() {
   return (
     <div className="App wrapper">
       <SideBar toggle={toggle} isOpen={isOpen} />
-      {id !== 'mail' ? <Content toggle={toggle} isOpen={isOpen} /> : <Email/>}
+      {id !== 'mail' ? <Content toggle={toggle} isOpen={isOpen} isMobile={isMobile} /> : <Email toggle={toggle} isOpen={isOpen} isMobile={isMobile}/>}
     </div>
   );
 }

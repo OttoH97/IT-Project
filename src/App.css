@@ -140,6 +140,12 @@ li a.dropdown-toggle::after {
   height: 100vh;
 }
 
+.mail {
+  padding: 20px;
+  margin-left: 0;
+  height: 100vh;
+}
+
 .card {
   background-color: white;
   border: none;
@@ -152,6 +158,12 @@ li a.dropdown-toggle::after {
   }
   
   .content.is-open {
+    /*margin-left: 100%;*/
+    display: none;
+    transition: all 0.5s;
+  }
+
+  .mail.is-open {
     /*margin-left: 100%;*/
     display: none;
     transition: all 0.5s;

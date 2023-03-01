@@ -3,8 +3,6 @@ import { Container, Row, Col, Form, Button, ListGroup, Alert, Modal } from 'reac
 import data from './emails.json';
 import NavBar from './Navbar';
 import classNames from "classnames";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 function Email({ toggle, isOpen }) {
 
@@ -79,7 +77,6 @@ function Email({ toggle, isOpen }) {
   };
 
   const handleRemove = (index) => {
-    const updatedEmail = prompt('Enter updated email', emails[index]);
     setEmails([...emails.slice(0, index), ...emails.slice(index + 1)]);
     const emailData = { emails: [...emails.slice(0, index), ...emails.slice(index + 1)] };
     fetch('emails.json', {
@@ -94,7 +91,7 @@ function Email({ toggle, isOpen }) {
   };
 
   return (
-    <Container style={{ width: "1000px" }} fluid className={classNames("content", { "is-open": isOpen })}>
+    <Container style={{ width: "1000px" }} fluid className={classNames("mail", { "is-open": isOpen })}>
       <NavBar toggle={toggle} name={'Mail List'} />
       <Row>
         <Col>
@@ -102,7 +99,7 @@ function Email({ toggle, isOpen }) {
           <Button variant="primary" type="submit" className='me-2' style={{width:"70px"}}>Add</Button>
               <Form.Control type="email" placeholder="Enter email" value={newEmail} onChange={handleEmailChange} />
           </Form>
-          <span>{errorMessage && <Alert variant="danger">{errorMessage}</Alert>}</span>
+          {/*<span>{errorMessage && <Alert variant="danger">{errorMessage}</Alert>}</span>*/}
           <ListGroup as='ol' variant='flush' className="mt-3">
             {emails.map((email, index) => (
               <ListGroup.Item key={index} as="li" className="d-flex justify-content-between align-items-center">

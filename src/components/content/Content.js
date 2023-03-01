@@ -4,6 +4,7 @@ import { Card, Col, Container, Row, Accordion, Button,Modal,Form } from "react-b
 import NavBar from "./Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
+import { faExclamation } from "@fortawesome/free-solid-svg-icons";
 
 function Content({ toggle, isOpen }) {
 
@@ -40,7 +41,7 @@ function Content({ toggle, isOpen }) {
             <Card.Body>
               <div className="d-flex align-items-center">
                 <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>22</div>
-                <div className="lh-sm ms-5 text-secondary">Welds awaits for your action to procedure </div>
+                <div className="lh-sm ms-5 text-secondary">Welds awaits for action to procedure </div>
               </div>
             </Card.Body>
           </Card>
@@ -65,7 +66,7 @@ function Content({ toggle, isOpen }) {
               <Col lg={6}>Information of the product</Col>
             </Row>
             <Row className="mt-3 d-flex justify-content-between">
-              <Col>asd</Col>
+              <Col>Text</Col>
             </Row>
             
           </Accordion.Body>
@@ -78,7 +79,7 @@ function Content({ toggle, isOpen }) {
 
             <Row className='align-items-center w-100'>
               <Col xs={'auto'}>
-                <FontAwesomeIcon icon={faCircleCheck} size="4x" style={{ color: "#f27a7a" }} />
+                <FontAwesomeIcon className="ms-4 me-4" icon={faExclamation} size="4x" style={{ color: "#f27a7a" }} />
               </Col>
               <Col xs={'auto'} className="text-secondary lh-sm">Name: <br />Date: <br />Status: </Col>
             </Row>
@@ -90,8 +91,58 @@ function Content({ toggle, isOpen }) {
               <Col lg={6}>Information of the product</Col>
             </Row>
             <Row className="mt-3">
-              <Col>asd</Col>
-              <Col><Button variant="primary" onClick={showModal}>Change Status</Button></Col>
+              <Col>Text</Col>
+              <Col className="align-items-center"><Button variant="primary" onClick={showModal}>Change Status</Button></Col>
+            </Row>
+            
+          </Accordion.Body>
+        </Accordion.Item>
+      </Accordion>
+
+      <Accordion className="mt-3">
+        <Accordion.Item eventKey="0" className="border-0 shadow-sm">
+          <Accordion.Header>
+
+            <Row className='align-items-center w-100'>
+              <Col xs={'auto'}>
+                <FontAwesomeIcon icon={faCircleCheck} size="4x" style={{ color: "#95d795" }} />
+              </Col>
+              <Col xs={'auto'} className="text-secondary lh-sm">Name: <br />Date: <br />Status: </Col>
+            </Row>
+
+          </Accordion.Header>
+          <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
+            <Row>
+              <Col lg={12} className='h3'>#Name</Col>
+              <Col lg={6}>Information of the product</Col>
+            </Row>
+            <Row className="mt-3 d-flex justify-content-between">
+              <Col>Text</Col>
+            </Row>
+            
+          </Accordion.Body>
+        </Accordion.Item>
+      </Accordion>
+
+      <Accordion className="mt-3">
+        <Accordion.Item eventKey="0" className="border-0 shadow-sm">
+          <Accordion.Header>
+
+            <Row className='align-items-center w-100'>
+              <Col xs={'auto'}>
+                <FontAwesomeIcon icon={faCircleCheck} size="4x" style={{ color: "#95d795" }} />
+              </Col>
+              <Col xs={'auto'} className="text-secondary lh-sm">Name: <br />Date: <br />Status: </Col>
+            </Row>
+
+          </Accordion.Header>
+          <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
+            <Row>
+              <Col lg={12} className='h3'>#Name</Col>
+              <Col lg={6}>Information of the product</Col>
+            </Row>
+            <Row className="mt-3 d-flex justify-content-between">
+              <Col>Text</Col>
             </Row>
             
           </Accordion.Body>

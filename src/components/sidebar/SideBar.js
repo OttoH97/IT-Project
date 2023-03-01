@@ -12,21 +12,27 @@ const Sidebar = ({ toggle, isOpen }) => {
     <div className={classNames("sidebar", { "is-open": isOpen })}>
       <Nav className="flex-column">
         <div className="sidebar-header">
-        <Button variant="link" onClick={toggle} style={{ color: "#fff" }} className="mt-4">
-          <FontAwesomeIcon icon={faTimes} pull="right" size="xs" />
-        </Button>
+          {isOpen === true ? <FontAwesomeIcon onClick={toggle} icon={faTimes} pull="right" size="2x" className="mt-4 me-4 d-block d-sm-none" style={{right:"25px",cursor:"pointer"}} /> : null}
+
         <Image className="p-4" width={240} src={logo}></Image>
       </div>
 
-      
         <span className="ms-3 my-3 fw-bold text-light">WELDCUBE <Badge style={{borderRadius:"3px", backgroundColor:"#e2001a"}}>PREMIUM</Badge></span>
 
-        <LinkContainer to='/'>
-          <Nav.Link className="text-secondary" href="/"><FontAwesomeIcon icon={faDashboard} className="me-2" />Dashboard</Nav.Link>
+        <LinkContainer to='/' >
+          <Nav.Link className="text-secondary d-none d-sm-block"><FontAwesomeIcon icon={faDashboard} className="me-2" />Dashboard</Nav.Link>
+        </LinkContainer>
+
+        <LinkContainer to='/' onClick={toggle}>
+        <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faDashboard} className="me-2" />Dashboard</Nav.Link>
         </LinkContainer>
 
         <LinkContainer to='/mail'>
-          <Nav.Link className="text-secondary" href="/"><FontAwesomeIcon icon={faEnvelope} className="me-2" />Mail List</Nav.Link>
+          <Nav.Link className="text-secondary d-none d-sm-block"><FontAwesomeIcon icon={faEnvelope} className="me-2" />Mail List</Nav.Link>
+        </LinkContainer>
+        
+        <LinkContainer to='/mail' onClick={toggle}>
+        <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faEnvelope} className="me-2" />Mail List</Nav.Link>
         </LinkContainer>
       </Nav>
     </div>

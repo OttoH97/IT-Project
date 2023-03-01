@@ -1,8 +1,8 @@
 {
   "emails": [
-    "john.doe@example.com",
-    "jane.doe@example.com",
-    "bob.smith@example.com",
-	"bob2.smith@example.com"
+    "example1@example.com",
+    "example2@example.com",
+    "example3@example.com",
+	  "example4@example.com"
   ]
 }
