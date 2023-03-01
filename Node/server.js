@@ -4,6 +4,7 @@ var nodeMailer = require('nodemailer');
 var app = express();
 let cors = require('cors');
 app.use(cors());
+const axios = require('axios');
 
 var http = require('http');
 
@@ -77,12 +78,12 @@ const recipients = {
   const apiUrl = 'http://weldcube.ky.local/api/v4/Welds/{WeldID}/ChangeState';
 
   app.post('/welds/change-state', (req, res) => {
-    const { WeldId, explanation, user } = req.body;
+    //const { WeldId, explanation, user } = req.body;
   
     const data = {
       WeldId,
-      explanation,
-      user
+      explanation : "testi",
+      user : R12_K2023
     };
   
     const headers = {
@@ -90,17 +91,14 @@ const recipients = {
       'api_key': process.env.MY_API_KEY
     };
   
-    fetch(apiUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(data)
+    axios.post(apiUrl, data, { headers })
+    .then(response => {
+      res.json(response.data);
     })
-      .then(response => response.json())
-      .then(data => res.json(data))
-      .catch(error => {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-      });
+    .catch(error => {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    });
   });
   
   app.listen(4000, () => console.log('Server running on port 4000'));
