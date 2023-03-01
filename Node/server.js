@@ -66,6 +66,14 @@ const recipients = {
       const response = await fetch(url, { headers });
       const data = await response.json();
       res.send(data);
+      console.log(data.WeldInfos[0].State);
+      const AllWelds = [data];
+      AllWelds.forEach(jsonObject=> {
+        jsonObject.WeldInfos.forEach(weldInfo=>{
+            const state = weldInfo.State;
+            console.log(`State value: ${state}`);
+        })
+      })
     } catch (error) {
       console.error(error);
       res.status(500).send(error);
