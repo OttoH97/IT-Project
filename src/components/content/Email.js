@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, ListGroup, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, ListGroup, Alert, Modal } from 'react-bootstrap';
 import data from './emails.json';
 import NavBar from './Navbar';
 import classNames from "classnames";
@@ -7,9 +7,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 function Email({ toggle, isOpen }) {
+
   const [emails, setEmails] = useState(data.emails);
   const [newEmail, setNewEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  const [show, setShow] = useState(false);
+  const hideModal = () => setShow(false);
+  const showModal = () => setShow(true);
 
   useEffect(() => {
     const emailData = { emails };
@@ -28,7 +33,7 @@ function Email({ toggle, isOpen }) {
     setNewEmail(e.target.value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newEmail) {
       setErrorMessage('Email cannot be empty');
@@ -40,16 +45,18 @@ function Email({ toggle, isOpen }) {
     }
     setEmails([...emails, newEmail]);
     setNewEmail('');
-    const emailData = { emails: [...emails, newEmail] };
-    fetch('emails.json', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(emailData),
-    })
-      .then((response) => response.json())
-      .catch((error) => console.log(error));
+  
+    try {
+      await fetch('/api/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: newEmail }),
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleEdit = (index) => {
@@ -72,6 +79,7 @@ function Email({ toggle, isOpen }) {
   };
 
   const handleRemove = (index) => {
+    const updatedEmail = prompt('Enter updated email', emails[index]);
     setEmails([...emails.slice(0, index), ...emails.slice(index + 1)]);
     const emailData = { emails: [...emails.slice(0, index), ...emails.slice(index + 1)] };
     fetch('emails.json', {
@@ -98,7 +106,7 @@ function Email({ toggle, isOpen }) {
           <ListGroup as='ol' variant='flush' className="mt-3">
             {emails.map((email, index) => (
               <ListGroup.Item key={index} as="li" className="d-flex justify-content-between align-items-center">
-                <span>{email}</span>
+                <span className='text-secondary'>{email}</span>
                 <span>
                   <Button variant="outline-primary" size="sm" className="mx-2" onClick={() => handleEdit(index)}>Edit</Button>
                   <Button size="sm" onClick={() => handleRemove(index)}>Remove</Button>
@@ -108,6 +116,31 @@ function Email({ toggle, isOpen }) {
           </ListGroup>
         </Col>
       </Row>
+
+      <Modal show={show} onHide={hideModal}>
+        <Modal.Header closeButton>
+          <Modal.Title className="text-secondary">#Product</Modal.Title>
+        </Modal.Header>
+        <Modal.Body><Form>
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+              <Form.Label>Name</Form.Label>
+              <Form.Control className="border-1" type="text" autoFocus/>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+              <Form.Label>Example textarea</Form.Label>
+              <Form.Control as="textarea" rows={3} />
+            </Form.Group>
+          </Form></Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={hideModal}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={hideModal}>
+            Update
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
     </Container>
   );
 }

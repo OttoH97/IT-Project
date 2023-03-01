@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import classNames from "classnames";
-import { Card, Col, Container, Row, Accordion } from "react-bootstrap";
+import { Card, Col, Container, Row, Accordion, Button,Modal,Form } from "react-bootstrap";
 import NavBar from "./Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
-import Email from "./Email";
 
 function Content({ toggle, isOpen }) {
+
+  const [show, setShow] = useState(false);
+  const hideModal = () => setShow(false);
+  const showModal = () => setShow(true);
 
   return (
     <Container style={{ width: "1000px" }} fluid className={classNames("content", { "is-open": isOpen })}>
@@ -16,8 +19,8 @@ function Content({ toggle, isOpen }) {
           <Card className="mb-3">
             <Card.Body>
               <div className="d-flex align-items-center">
-                <div className="fs-1 ms-2" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>15</div>
-                <div className="lh-sm ms-5 text-secondary">Tuotetta odottaa tarkistamista</div>
+                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>200</div>
+                <div className="lh-sm ms-5 text-secondary">Total of recent welds to show</div>
               </div>
             </Card.Body>
           </Card>
@@ -26,8 +29,8 @@ function Content({ toggle, isOpen }) {
           <Card className="mb-3">
             <Card.Body>
               <div className="d-flex align-items-center">
-                <div className="fs-1 ms-2" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>15</div>
-                <div className="lh-sm ms-5 text-secondary">Tuotetta odottaa tarkistamista</div>
+                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>178</div>
+                <div className="lh-sm ms-5 text-secondary">Welds passed with status <strong>OK</strong></div>
               </div>
             </Card.Body>
           </Card>
@@ -36,37 +39,85 @@ function Content({ toggle, isOpen }) {
           <Card className="mb-3">
             <Card.Body>
               <div className="d-flex align-items-center">
-                <div className="fs-1 ms-2" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>15</div>
-                <div className="lh-sm ms-5 text-secondary">Tuotetta odottaa tarkistamista</div>
+                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>22</div>
+                <div className="lh-sm ms-5 text-secondary">Welds awaits for your action to procedure </div>
               </div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      <Accordion>
+      <Accordion className="mt-3">
         <Accordion.Item eventKey="0" className="border-0 shadow-sm">
           <Accordion.Header>
 
             <Row className='align-items-center w-100'>
               <Col xs={'auto'}>
-                <FontAwesomeIcon icon={faCircleCheck} size="4x" style={{ color: "#7e899b" }} />
+                <FontAwesomeIcon icon={faCircleCheck} size="4x" style={{ color: "#95d795" }} />
               </Col>
               <Col xs={'auto'} className="text-secondary lh-sm">Name: <br />Date: <br />Status: </Col>
             </Row>
 
           </Accordion.Header>
-          <Accordion.Body style={{ backgroundColor: "white" }}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-            minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
+          <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
+            <Row>
+              <Col lg={12} className='h3'>#Name</Col>
+              <Col lg={6}>Information of the product</Col>
+            </Row>
+            <Row className="mt-3 d-flex justify-content-between">
+              <Col>asd</Col>
+            </Row>
+            
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
+
+      <Accordion className="mt-3">
+        <Accordion.Item eventKey="0" className="border-0 shadow-sm">
+          <Accordion.Header>
+
+            <Row className='align-items-center w-100'>
+              <Col xs={'auto'}>
+                <FontAwesomeIcon icon={faCircleCheck} size="4x" style={{ color: "#f27a7a" }} />
+              </Col>
+              <Col xs={'auto'} className="text-secondary lh-sm">Name: <br />Date: <br />Status: </Col>
+            </Row>
+
+          </Accordion.Header>
+          <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
+            <Row>
+              <Col lg={12} className='h3'>#Name</Col>
+              <Col lg={6}>Information of the product</Col>
+            </Row>
+            <Row className="mt-3">
+              <Col>asd</Col>
+              <Col><Button variant="primary" onClick={showModal}>Change Status</Button></Col>
+            </Row>
+            
+          </Accordion.Body>
+        </Accordion.Item>
+      </Accordion>
+
+      <Modal show={show} onHide={hideModal}>
+        <Modal.Header closeButton>
+          <Modal.Title className="text-secondary">#Product</Modal.Title>
+        </Modal.Header>
+        <Modal.Body><Form>
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+              <Form.Label className="text-secondary">Add your name below for status change holder.</Form.Label>
+              <Form.Control style={{border: "1px solid #ddd"}} type="text" placeholder="Name" autoFocus/>
+            </Form.Group>
+            
+          </Form></Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={hideModal}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={hideModal}>
+            Update
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
     </Container>
   );
