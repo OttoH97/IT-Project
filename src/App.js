@@ -3,10 +3,17 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import SideBar from "./components/sidebar/SideBar";
 import Content from "./components/content/Content";
+import { useLocation } from "react-router-dom"
+import Email from "./components/content/Email";
 
 function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(true);
+
+  const location = useLocation();
+  const tulos = location.pathname.split('/')
+  let id = tulos[1];
+  console.log(id)
 
   const updateWidth = () => {
     const width = window.innerWidth;
@@ -39,7 +46,7 @@ function App() {
   return (
     <div className="App wrapper">
       <SideBar toggle={toggle} isOpen={isOpen} />
-      <Content toggle={toggle} isOpen={isOpen} />
+      {id !== 'mail' ? <Content toggle={toggle} isOpen={isOpen} /> : <Email/>}
     </div>
   );
 }

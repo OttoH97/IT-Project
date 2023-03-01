@@ -10,7 +10,7 @@ function Content({ toggle, isOpen }) {
 
   return (
     <Container style={{ width: "1000px" }} fluid className={classNames("content", { "is-open": isOpen })}>
-      <NavBar toggle={toggle} />
+      <NavBar toggle={toggle} name={'Dashboard'} />
       <Row>
         <Col md={12} lg={4}>
           <Card className="mb-3">
@@ -67,9 +67,6 @@ function Content({ toggle, isOpen }) {
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
-      
-
-      <Email />
 
     </Container>
   );

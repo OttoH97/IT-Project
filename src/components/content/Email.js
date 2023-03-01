@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, ListGroup, Alert } from 'react-bootstrap';
 import data from './emails.json';
+import NavBar from './Navbar';
+import classNames from "classnames";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
-function Email() {
+function Email({ toggle, isOpen }) {
   const [emails, setEmails] = useState(data.emails);
   const [newEmail, setNewEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -82,29 +86,23 @@ function Email() {
   };
 
   return (
-    <Container className="mt-5">
+    <Container style={{ width: "1000px" }} fluid className={classNames("content", { "is-open": isOpen })}>
+      <NavBar toggle={toggle} name={'Mail List'} />
       <Row>
         <Col>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formBasicEmail">
-              <Form.Label>Email address</Form.Label>
+          <Form onSubmit={handleSubmit} className='d-flex'>
+          <Button variant="primary" type="submit" className='me-2' style={{width:"70px"}}>Add</Button>
               <Form.Control type="email" placeholder="Enter email" value={newEmail} onChange={handleEmailChange} />
-              {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
-            </Form.Group>
-            <Button variant="primary" type="submit">
-              Add Email
-            </Button>
           </Form>
-          <ListGroup className="mt-3">
+          <span>{errorMessage && <Alert variant="danger">{errorMessage}</Alert>}</span>
+          <ListGroup as='ol' variant='flush' className="mt-3">
             {emails.map((email, index) => (
-              <ListGroup.Item key={index}>
+              <ListGroup.Item key={index} as="li" className="d-flex justify-content-between align-items-center">
                 <span>{email}</span>
-                <Button variant="info" size="sm" className="mx-2" onClick={() => handleEdit(index)}>
-                  Edit
-                </Button>
-                <Button variant="danger" size="sm" onClick={() => handleRemove(index)}>
-                  Remove
-                </Button>
+                <span>
+                  <Button variant="outline-primary" size="sm" className="mx-2" onClick={() => handleEdit(index)}>Edit</Button>
+                  <Button size="sm" onClick={() => handleRemove(index)}>Remove</Button>
+                </span>
               </ListGroup.Item>
             ))}
           </ListGroup>
