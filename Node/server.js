@@ -1,5 +1,5 @@
-// app.js
 var express = require('express');
+var nodeMailer = require('nodemailer');
 var app = express();
 const fetch = require('node-fetch');
 
@@ -7,6 +7,55 @@ const fetch = require('node-fetch');
 var myAPIKey = 'dc55e8bbc6b73dbb17c5ecf360a0aeb1';
 
 
+
+
+
+//Mailserverin luonti
+const transporter = nodeMailer.createTransport({
+    host: 'smtp.office365.com',
+    port: '587',
+    secure: false,
+    tls: {
+        ciphers: "SSLv3",
+        rejectUnauthorized: false,
+        },
+        //Outlookilla lähettäessä tarvitsee autentikoinnin, salasanan jätin poies
+    auth:{
+        user:'viliho.fr@hotmail.com',
+        pass:''
+    }
+});
+const Mailoptions  = {
+    from: 'viliho.fr@hotmail.com',
+    to: 'ville.froberg@edu.savonia.fi',
+    subject: 'testataan',
+    text: "tämä olla viesti, jee", 
+};
+//transporterin avulla lähettäminen
+transporter.sendMail(Mailoptions, function(err, info){
+    if(err){
+        console.log(err);
+        return;
+    }
+    console.log("Lähetetty " + info.response);
+})
+
+
+const hostname = '127.0.0.1';
+const port = 3000;
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end('Hello World');
+});
+
+server.listen(port, hostname, () => {
+    console.log(`Server running at http://${hostname}:${port}/`);
+  });
+
+
+var options = {
 
 app.get('/welds', async (req, res) => {
   const url = 'http://weldcube.ky.local/api/v4/Welds';
@@ -25,4 +74,27 @@ app.get('/welds', async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+    path:'/api/v4/Welds',
+
+    method:'GET',
+
+    headers: {
+        "api_key": myAPIKey
+      }
+
+};
+
+
+http.request(options, function(res){
+    var body ='';
+
+    res.on('data', function(chunk){
+        body += chunk;
+    });
+
+    res.on('end', function(){
+        var values = body;
+        console.log(values);
+    });
+
+}).end()
