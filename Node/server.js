@@ -55,7 +55,7 @@ server.listen(port, hostname, () => {
   });
 
 
-var options = {
+
 
 app.get('/welds', async (req, res) => {
   const url = 'http://weldcube.ky.local/api/v4/Welds';
@@ -74,15 +74,6 @@ app.get('/welds', async (req, res) => {
   }
 });
 
-    path:'/api/v4/Welds',
-
-    method:'GET',
-
-    headers: {
-        "api_key": myAPIKey
-      }
-
-};
 
 
 http.request(options, function(res){
