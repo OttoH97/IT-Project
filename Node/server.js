@@ -78,7 +78,7 @@ const recipients = {
   const apiUrl = 'http://weldcube.ky.local/api/v4/Welds/{WeldID}/ChangeState';
 
   app.post('/welds/change-state', (req, res) => {
-    //const { WeldId, explanation, user } = req.body;
+    //const { WeldId, explanation, user } = req.body; // tämä ottaa frontin puolelta responsen. EI käytössä ennen kuin front valmis.
   
     const data = {
       WeldId,
