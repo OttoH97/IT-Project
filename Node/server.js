@@ -71,5 +71,36 @@ const recipients = {
       res.status(500).send(error);
     }
   });
+
+  //Tässä testataan POST
+
+  const apiUrl = 'http://weldcube.ky.local/api/v4/Welds/{WeldID}/ChangeState';
+
+  app.post('/welds/change-state', (req, res) => {
+    const { WeldId, explanation, user } = req.body;
+  
+    const data = {
+      WeldId,
+      explanation,
+      user
+    };
+  
+    const headers = {
+      'Content-Type': 'application/json',
+      'api_key': process.env.MY_API_KEY
+    };
+  
+    fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data)
+    })
+      .then(response => response.json())
+      .then(data => res.json(data))
+      .catch(error => {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+      });
+  });
   
   app.listen(4000, () => console.log('Server running on port 4000'));
