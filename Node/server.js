@@ -56,8 +56,28 @@ const recipients = {
     });
   }
 
+  //Tässä haetaan kaikki hitsit
   app.get('/welds', async (req, res) => {
     const url = 'http://weldcube.ky.local/api/v4/Welds';
+    const headers = {
+      'api_key': process.env.MY_API_KEY,
+      'Accept': 'application/json'
+    };
+  
+    try {
+      const response = await fetch(url, { headers });
+      const data = await response.json();
+      res.send(data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
+
+
+//Tässä haetaan yksittäinen hitsin lisätiedot klikkauksella
+  app.get('/welds/:weldId', async (req, res) => {
+    const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}`;
     const headers = {
       'api_key': process.env.MY_API_KEY,
       'Accept': 'application/json'
