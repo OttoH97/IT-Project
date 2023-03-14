@@ -88,7 +88,7 @@ app.get('/welds', async (req, res) => {
         };
         
         notOkWelds.forEach(weld => {
-          Mailoptions.text += `Weld Id: ${weld.id}, NotOk status: ${weld.status}\n`;
+          Mailoptions.text += `Weld Id: ${weld.id}\n`;
         });
         
         for (const [name, email] of Object.entries(recipients)) {
