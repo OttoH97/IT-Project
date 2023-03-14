@@ -80,7 +80,8 @@ const recipients = {
     const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}`;
     const headers = {
       'api_key': process.env.MY_API_KEY,
-      'Accept': 'application/json'
+      'Accept': 'application/json',
+      'Content-type' : 'application/json'
     };
   
     try {
@@ -122,13 +123,12 @@ const recipients = {
   // });
 
   app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
-    const { weldId } = req.params;
     const { explanation, user } = req.query;
-    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}`;
+    const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState`;
     const headers = {
       'api_key': process.env.MY_API_KEY,
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-type' : 'application/json'
     };
     const body = {
       explanation,
