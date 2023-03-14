@@ -25,11 +25,26 @@ a:focus {
 }
 
 /* ---------------------------------------------------
+    CUSTOM
+----------------------------------------------------- */
+.zoom {
+  transition: all .2s ease-in-out;
+  cursor: pointer;
+}
+
+.zoom:hover {
+  transform: scale(1.05);
+  border-color: red;
+}
+
+/* ---------------------------------------------------
     SIDEBAR STYLE
 ----------------------------------------------------- */
 .sidebar {
   min-width: 250px;
   max-width: 250px;
+  min-height: 1297px;
+  max-height: 1297px;
   background: #354052;
   color: #adb5bd;
   margin-left: -250px;
