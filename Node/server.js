@@ -11,7 +11,7 @@ var http = require('http');
 
 
 
-
+let notOkCount = 0;
 let sentEmails = [];
 
 //Mailserverin luonti
@@ -29,74 +29,95 @@ const transporter = nodeMailer.createTransport({
         pass: process.env.EMAIL_PASS
     }
 });
-//Mailoptions.to mÃ¤Ã¤ritellÃ¤Ã¤n JSON-listan mappauksessa. 
+//Mailoptions.to mÃƒÂ¤ÃƒÂ¤ritellÃƒÂ¤ÃƒÂ¤n JSON-listan mappauksessa. 
 const Mailoptions  = {
     from: 'WeldMailer123@gmail.com',
     subject: 'testataan',
      
 };
-//TÃ¤mÃ¤ kohta korvataan erillisellÃ¤ Json tiedostolla/objektilla
+//TÃƒÂ¤mÃƒÂ¤ kohta korvataan erillisellÃƒÂ¤ Json tiedostolla/objektilla
 const recipients = {
-    'Ville Fröberg': 'viliho.fr@hotmail.com',
+    'Ville FrÃ¶berg': 'viliho.fr@hotmail.com',
     'Opiskelija Ville': 'ville.froberg@edu.savonia.fi'
     
   };
-//for -loopissa kÃ¤ydÃ¤Ã¤n lÃ¤pi jokainen objektissa oleva sÃ¤hkÃ¶posti
+//for -loopissa kÃƒÂ¤ydÃƒÂ¤ÃƒÂ¤n lÃƒÂ¤pi jokainen objektissa oleva sÃƒÂ¤hkÃƒÂ¶posti
   
 
-  app.get('/welds', async (req, res) => {
+app.get('/welds', async (req, res) => {
     const url = 'http://weldcube.ky.local/api/v4/welds';
     const headers = {
       'api_key': process.env.MY_API_KEY,
       'Accept': 'application/json'
     };
-
     
     try {
-        
       const response = await fetch(url, { headers });
       const data = await response.json();
-      res.send(data);
       console.log(data.WeldInfos[0].State);
       const AllWelds = [data];
-      AllWelds.forEach(jsonObject=> {
-        jsonObject.WeldInfos.forEach(weldInfo=>{
-            const state = weldInfo.State;
-            const id = weldInfo.Id;
-            console.log(`State value: ${state}`);
-            if(state == 'NotOk'){
-            Mailoptions.text = "Ongelmia " + id + " hitsissä";
-            }
-            
-            
-        })
-        
-      });
-      for (const [name, email] of Object.entries(recipients)) {
-        Mailoptions.to = email;
-        console.log("SäHKÖPOSTI "+email);
-        
-        
-
-        
-        transporter.sendMail(Mailoptions, (error, info) => {
-          if (error) {
-            console.log(error);
-          } else {
-            console.log(`Message sent: ${name} (${email}): ` + info.response);
-          }
-          sentEmails.push(id);
-          console.log(sentEmails);
-          console.log(sentEmails.length);
+      const notOkWelds = [];
+      
+      AllWelds.forEach(jsonObject => {
+        jsonObject.WeldInfos.forEach(weldInfo => {
+          const state = weldInfo.State;
+          const id = weldInfo.Id;
+          const stats = weldInfo.status;
+          console.log(`State value: ${state}`);
           
+          if (state === 'NotOk') {
+            notOkWelds.push({
+              id: id,
+              status: weldInfo.Status
+            });
+          }
+        })
+      });
+  
+      if (notOkWelds.length > 0) {
+        const recipients = {
+          'Ville FrÃ¶berg': 'viliho.fr@hotmail.com',
+          'Opiskelija Ville': 'ville.froberg@edu.savonia.fi'
+        };
+        
+        const emailPromises = [];
+        const Mailoptions = {
+          from: 'WeldMailer123@gmail.com',
+          subject: 'NotOk welds',
+          text: `There are ${notOkWelds.length} welds with NotOk status:\n\n`
+        };
+        
+        notOkWelds.forEach(weld => {
+          Mailoptions.text += `Weld Id: ${weld.id}, NotOk status: ${weld.status}\n`;
         });
         
+        for (const [name, email] of Object.entries(recipients)) {
+          Mailoptions.to = email;
+          console.log(`Sending email to: ${name} (${email})`);
+          emailPromises.push(
+            transporter.sendMail(Mailoptions)
+              .then(info => console.log(`Message sent: ${name} (${email}): ${info.response}`))
+              .catch(error => console.error(error))
+          );
+        }
+        
+        Promise.all(emailPromises)
+          .then(() => {
+            console.log('All emails sent');
+            res.send(notOkWelds);
+          })
+          .catch(error => {
+            console.error(error);
+            res.status(500).send('Error sending emails');
+          });
+      } else {
+        console.log('No NotOk welds found');
+        res.send(data);
       }
     } catch (error) {
       console.error(error);
-      res.status(500).send(error);
+      res.status(500).send('Error retrieving welds');
     }
-    
   });
   
   
