@@ -5,8 +5,11 @@ var app = express();
 let cors = require('cors');
 app.use(cors());
 
-var http = require('http');
 const { info } = require('console');
+const axios = require('axios');
+
+var http = require('http');
+
 
 
 
@@ -97,8 +100,34 @@ const recipients = {
       console.error(error);
       res.status(500).send(error);
     }
-    
   });
+
+  //Tässä testataan POST
+
+  const apiUrl = 'http://weldcube.ky.local/api/v4/Welds/{WeldID}/ChangeState';
+
+  app.post('/welds/change-state', (req, res) => {
+    //const { WeldId, explanation, user } = req.body; // tämä ottaa frontin puolelta responsen. EI käytössä ennen kuin front valmis.
   
+    const data = {
+      WeldId,
+      explanation : "testi",
+      user : R12_K2023
+    };
+  
+    const headers = {
+      'Content-Type': 'application/json',
+      'api_key': process.env.MY_API_KEY
+    };
+  
+    axios.post(apiUrl, data, { headers })
+    .then(response => {
+      res.json(response.data);
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    });
+  });
   
   app.listen(4000, () => console.log('Server running on port 4000'));
