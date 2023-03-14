@@ -12,7 +12,7 @@ var http = require('http');
 
 
 
-
+let sentEmails = [];
 
 //Mailserverin luonti
 const transporter = nodeMailer.createTransport({
@@ -29,47 +29,75 @@ const transporter = nodeMailer.createTransport({
         pass: process.env.EMAIL_PASS
     }
 });
-//Mailoptions.to määritellään JSON-listan mappauksessa. 
+//Mailoptions.to mÃ¤Ã¤ritellÃ¤Ã¤n JSON-listan mappauksessa. 
 const Mailoptions  = {
     from: 'WeldMailer123@gmail.com',
     subject: 'testataan',
-    text: "tämä olla viesti, jee", 
+     
 };
-//Tämä kohta korvataan erillisellä Json tiedostolla/objektilla
+//TÃ¤mÃ¤ kohta korvataan erillisellÃ¤ Json tiedostolla/objektilla
 const recipients = {
-    'John Doe': 'johndoe@example.com',
-    'Jane Doe': 'janedoe@example.com',
-    'Bob Smith': 'bobsmith@example.com'
-  };
-//for -loopissa käydään läpi jokainen objektissa oleva sähköposti
-  for (const [name, email] of Object.entries(recipients)) {
-    Mailoptions.to = email;
-    Mailoptions.text = `Hello ${name},\n\n${Mailoptions.text}`;
+    'Ville Fröberg': 'viliho.fr@hotmail.com',
+    'Opiskelija Ville': 'ville.froberg@edu.savonia.fi'
     
-    transporter.sendMail(Mailoptions, (error, info) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log(`Viesti lähetetty: ${name} (${email}): ` + info.response);
-      }
-    });
-  }
+  };
+//for -loopissa kÃ¤ydÃ¤Ã¤n lÃ¤pi jokainen objektissa oleva sÃ¤hkÃ¶posti
+  
 
   app.get('/welds', async (req, res) => {
-    const url = 'http://weldcube.ky.local/api/v4/Welds';
+    const url = 'http://weldcube.ky.local/api/v4/welds';
     const headers = {
       'api_key': process.env.MY_API_KEY,
       'Accept': 'application/json'
     };
-  
+
+    
     try {
+        
       const response = await fetch(url, { headers });
       const data = await response.json();
       res.send(data);
+      console.log(data.WeldInfos[0].State);
+      const AllWelds = [data];
+      AllWelds.forEach(jsonObject=> {
+        jsonObject.WeldInfos.forEach(weldInfo=>{
+            const state = weldInfo.State;
+            const id = weldInfo.Id;
+            console.log(`State value: ${state}`);
+            if(state == 'NotOk'){
+            Mailoptions.text = "Ongelmia " + id + " hitsissä";
+            }
+            
+            
+        })
+        
+      });
+      for (const [name, email] of Object.entries(recipients)) {
+        Mailoptions.to = email;
+        console.log("SäHKÖPOSTI "+email);
+        
+        
+
+        
+        transporter.sendMail(Mailoptions, (error, info) => {
+          if (error) {
+            console.log(error);
+          } else {
+            console.log(`Message sent: ${name} (${email}): ` + info.response);
+          }
+          sentEmails.push(id);
+          console.log(sentEmails);
+          console.log(sentEmails.length);
+          
+        });
+        
+      }
     } catch (error) {
       console.error(error);
       res.status(500).send(error);
     }
+    
   });
+  
   
   app.listen(4000, () => console.log('Server running on port 4000'));
