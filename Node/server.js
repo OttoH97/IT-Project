@@ -104,7 +104,9 @@ const recipients = {
 
   //emails.json käsittelyyn
 
+  const path = require('path');
   const fs = require('fs');
+  const emailsFilePath = path.join(__dirname, 'src', 'components', 'content', 'emails.json');
 
   // Route handler for modifying emails.json file
   app.put('/emails', (req, res) => {
@@ -121,7 +123,7 @@ const recipients = {
     }
 
     // Read the emails.json file
-    fs.readFile('emails.json', 'utf8', (err, data) => {
+    fs.readFile(emailsFilePath, 'utf8', (err, data) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ message: 'Internal server error.' });
@@ -134,7 +136,7 @@ const recipients = {
       jsonData.emails = emails;
 
       // Write the updated data back to the emails.json file
-      fs.writeFile('emails.json', JSON.stringify(jsonData), 'utf8', (err) => {
+      fs.writeFile(emailsFilePath, JSON.stringify(jsonData), 'utf8', (err) => {
         if (err) {
           console.error(err);
           return res.status(500).json({ message: 'Internal server error.' });
