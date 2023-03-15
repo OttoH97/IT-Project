@@ -102,6 +102,51 @@ const recipients = {
     }
   });
 
+  //emails.json käsittelyyn
+
+  const fs = require('fs');
+
+  // Route handler for modifying emails.json file
+  app.put('/emails', (req, res) => {
+    const { emails } = req.body;
+
+    // Check if emails property exists in the request body
+    if (!emails) {
+      return res.status(400).json({ message: 'Emails property missing from request body.' });
+    }
+
+    // Check if emails is an array
+    if (!Array.isArray(emails)) {
+      return res.status(400).json({ message: 'Emails property must be an array.' });
+    }
+
+    // Read the emails.json file
+    fs.readFile('emails.json', 'utf8', (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal server error.' });
+      }
+
+      // Parse the JSON data
+      const jsonData = JSON.parse(data);
+
+      // Update the emails property
+      jsonData.emails = emails;
+
+      // Write the updated data back to the emails.json file
+      fs.writeFile('emails.json', JSON.stringify(jsonData), 'utf8', (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'Internal server error.' });
+        }
+
+        // Send a response back to the client
+        res.json({ message: 'Emails updated successfully.' });
+      });
+    });
+  });
+
+
   //Tässä testataan POST
 
   const apiUrl = 'http://weldcube.ky.local/api/v4/Welds/{WeldID}/ChangeState';

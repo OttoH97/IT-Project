@@ -33,7 +33,7 @@ function Email({ toggle, isOpen }) {
 
   useEffect(() => {
     const emailData = { emails: emails };
-    fetch(relativePath, {
+    fetch('./emails.json', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ function Email({ toggle, isOpen }) {
     if (updatedEmail && !emails.find((email) => email === updatedEmail)) {
       setEmails([...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)]);
       const emailData = { emails: [...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)] };
-      fetch(relativePath, {
+      fetch('./emails.json', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ function Email({ toggle, isOpen }) {
   const handleRemove = (index) => {
     setEmails([...emails.slice(0, index), ...emails.slice(index + 1)]);
     const emailData = { emails: [...emails.slice(0, index), ...emails.slice(index + 1)] };
-    fetch(relativePath, {
+    fetch('./emails.json', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
