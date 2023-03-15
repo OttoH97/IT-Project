@@ -14,6 +14,10 @@ function Email({ toggle, isOpen }) {
   const hideModal = () => setShow(false);
   const showModal = () => setShow(true);
 
+  const moduleUrl = new URL(import.meta.url);
+  const emailsJsonUrl = new URL('./emails.json', moduleUrl);
+  const relativePath = emailsJsonUrl.pathname;
+
   // useEffect(() => {
   //   const emailData = { emails };
   //   fetch('./emails.json', {
@@ -29,7 +33,7 @@ function Email({ toggle, isOpen }) {
 
   useEffect(() => {
     const emailData = { emails: emails };
-    fetch('./emails.json', {
+    fetch(relativePath, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -75,7 +79,7 @@ function Email({ toggle, isOpen }) {
     if (updatedEmail && !emails.find((email) => email === updatedEmail)) {
       setEmails([...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)]);
       const emailData = { emails: [...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)] };
-      fetch('./emails.json', {
+      fetch(relativePath, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +96,7 @@ function Email({ toggle, isOpen }) {
   const handleRemove = (index) => {
     setEmails([...emails.slice(0, index), ...emails.slice(index + 1)]);
     const emailData = { emails: [...emails.slice(0, index), ...emails.slice(index + 1)] };
-    fetch('./emails.json', {
+    fetch(relativePath, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
