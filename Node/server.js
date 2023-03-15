@@ -4,7 +4,7 @@ var nodeMailer = require('nodemailer');
 var app = express();
 let cors = require('cors');
 app.use(cors());
-
+const fs = require('fs');
 var http = require('http');
 
 
@@ -35,16 +35,11 @@ const Mailoptions  = {
     subject: 'testataan',
      
 };
-//TÃƒÂ¤mÃƒÂ¤ kohta korvataan erillisellÃƒÂ¤ Json tiedostolla/objektilla
-const recipients = {
-    'Ville FrÃ¶berg': 'viliho.fr@hotmail.com',
-    'Opiskelija Ville': 'ville.froberg@edu.savonia.fi'
-    
-  };
-//for -loopissa kÃƒÂ¤ydÃƒÂ¤ÃƒÂ¤n lÃƒÂ¤pi jokainen objektissa oleva sÃƒÂ¤hkÃƒÂ¶posti
+
+
   
 
-app.get('/welds', async (req, res) => {
+app.get('/welds', async (req, res) => {//hakee kaikki hitsaukset
     const url = 'http://weldcube.ky.local/api/v4/welds';
     const headers = {
       'api_key': process.env.MY_API_KEY,
@@ -56,16 +51,16 @@ app.get('/welds', async (req, res) => {
       const data = await response.json();
       console.log(data.WeldInfos[0].State);
       const AllWelds = [data];
-      const notOkWelds = [];
+      const notOkWelds = [];//Lisää kaikki hitsaukset AllWelds muuttujaan.
       
-      AllWelds.forEach(jsonObject => {
+      AllWelds.forEach(jsonObject => {// käy läpi kaikki muuttujat
         jsonObject.WeldInfos.forEach(weldInfo => {
           const state = weldInfo.State;
           const id = weldInfo.Id;
           const stats = weldInfo.status;
           console.log(`State value: ${state}`);
           
-          if (state === 'NotOk') {
+          if (state === 'NotOk') { //Jos muuttujassa state NotOk, laitetaan se notOKwelds arraylistiin. 
             notOkWelds.push({
               id: id,
               status: weldInfo.Status
@@ -74,11 +69,8 @@ app.get('/welds', async (req, res) => {
         })
       });
   
-      if (notOkWelds.length > 0) {
-        const recipients = {
-          'Ville FrÃ¶berg': 'viliho.fr@hotmail.com',
-          'Opiskelija Ville': 'ville.froberg@edu.savonia.fi'
-        };
+      if (notOkWelds.length > 0) { //arraylistin ollessa muuta kuin tyhjä lähdetään ajamaan sähköpostin lähetystä.
+        const recipients = JSON.parse(fs.readFileSync('recipient.json')); // tässä haetaan sähköpostilistasta osoitteet, Ulkoinen JSON -tiedosto. 
         
         const emailPromises = [];
         const Mailoptions = {
