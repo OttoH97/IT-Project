@@ -8,22 +8,41 @@ import { faChevronLeft, faChevronRight, faExclamation } from "@fortawesome/free-
 
 import data from '../../data.json';
 import ReactPaginate from 'react-paginate';
+import axios from 'axios';
 
 function Content({ toggle, isOpen }) {
 
 
   // Welds from weldcube API
   const [welds, setWelds] = useState([]);
-  const [filterState, setFilterState] = useState("all");
+  const [latestWeld, setLatestWeld] = useState('');
+  const [filterState, setFilterState] = useState("All");
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setWelds(data.WeldInfos);
-}, []);
+  // Local file
+//  useEffect(() => {
+//    setWelds(data.WeldInfos);
+//}, []);
 
   // Modal
   const [show, setShow] = useState(false);
   const hideModal = () => setShow(false);
   const showModal = () => setShow(true);
+
+  useEffect(() => {
+    axios.get(`http://localhost:4000/welds`)
+      .then(response => {
+        setWelds(response.data.WeldInfos);
+        setLatestWeld(response.data.WeldInfos[0].Id);
+        setLoading(false);
+
+      })
+      .catch(error => {
+        console.log(error);
+        setLoading(false);
+
+      });
+  }, [latestWeld]);
 
   // Filters
 
@@ -32,12 +51,12 @@ function Content({ toggle, isOpen }) {
   };
 
   const filteredWelds = welds.filter((weld) => {
-    if (filterState === "all") {
+    if (filterState === "All") {
       return true;
-    } else if (filterState === "ok") {
+    } else if (filterState === "Ok") {
       return weld.State === "Ok";
-    } else if (filterState === "not-ok") {
-      return weld.State === "Not ok";
+    } else if (filterState === "Not Ok") {
+      return weld.State === "NotOk";
     }
   });
 
@@ -60,7 +79,7 @@ function formatTimestamp(timestamp) {
   const date = new Date(timestamp);
   const options = {
     year: 'numeric',
-    month: 'long',
+    month: 'numeric',
     day: 'numeric',
     hour: 'numeric',
     minute: 'numeric',
@@ -78,9 +97,9 @@ let rows = currentItems.map((x) => {
           <Accordion.Header>
             <Row className='align-items-center w-100'>
               <Col xs={'auto'}>
-              <FontAwesomeIcon icon={State === "Not ok" ? faExclamation : faCircleCheck} size="4x" style={{ color: State === "Not ok" ? "#ff8a8a" : "#95d795" }} className={State === "Not ok" ? "ms-4 me-4" : ""} />
+              <FontAwesomeIcon icon={State === "NotOk" ? faExclamation : faCircleCheck} size="4x" style={{ color: State === "NotOk" ? "#ff8a8a" : "#95d795" }} className={State === "NotOk" ? "ms-4 me-4" : ""} />
               </Col>
-              <Col xs={'auto'} className="text-secondary lh-sm">Name: #{ProcessingStepNumber} <br />Date: {formatTimestamp(Timestamp)}<br />Status: {State}</Col>
+              <Col xs={'auto'} className="text-secondary lh-sm">Name: #{ProcessingStepNumber}<br />Date: {formatTimestamp(Timestamp)}<br />Status: {State}</Col>
             </Row>
           </Accordion.Header>
           <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
@@ -101,39 +120,40 @@ let rows = currentItems.map((x) => {
   return (
     <Container style={{ width: "1000px" }} fluid className={classNames("content", { "is-open": isOpen })}>
       <NavBar toggle={toggle} name={'Dashboard'} />
+      {loading ? <span class="loader"></span> : <>
       <Row>
-        <Col md={12} lg={4} onClick={() => handleFilter("all")} className='zoom user-select-none'>
+        <Col md={12} lg={4} onClick={() => {handleFilter("All"); setCurrentPage(1)}} className='zoom user-select-none'>
           <Card className="mb-3">
             <Card.Body>
               <div className="d-flex align-items-center">
-                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>{welds.length}</div>
+                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.4" }}>{welds.length}</div>
                 <div className="lh-sm ms-5 text-secondary">Total of recent welds to show</div>
               </div>
             </Card.Body>
           </Card>
         </Col>
-        <Col sm={12} md={12} lg={4} onClick={() => handleFilter("ok") } className='zoom user-select-none'>
+        <Col sm={12} md={12} lg={4} onClick={() => {handleFilter("Ok"); setCurrentPage(1)} } className='zoom user-select-none'>
           <Card className="mb-3">
             <Card.Body>
               <div className="d-flex align-items-center">
-                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>{welds.filter((weld) => weld.State === "Ok").length}</div>
+                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.4"}}>{welds.filter((weld) => weld.State === "Ok" || weld.State ==="OkEdited").length}</div>
                 <div className="lh-sm ms-5 text-secondary">Welds passed with status <strong>OK</strong></div>
               </div>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={12} lg={4} onClick={() => handleFilter("not-ok")} className='zoom user-select-none'>
+        <Col md={12} lg={4} onClick={() => { handleFilter("Not Ok"); setCurrentPage(1)}} className='zoom user-select-none'>
           <Card className="mb-3">
             <Card.Body>
               <div className="d-flex align-items-center">
-                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.5", fontFamily: "Comic" }}>{welds.filter((weld) => weld.State === "Not ok").length}</div>
+                <div className="fs-1 ms-4" style={{ color: "#7e899b", scale: "1.4"}}>{welds.filter((weld) => weld.State === "NotOk" || weld.State === "NotOkEdited").length}</div>
                 <div className="lh-sm ms-5 text-secondary">Welds awaits for action to procedure </div>
               </div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
-{filterState === 'all' ? <h6 className="mt-3 text-secondary">Showing All Recent Welds</h6> : <h6 className="mt-3 text-secondary">Showing Welds Status "{filterState}"</h6>}
+{filterState === 'All' ? <h6 className="mt-3 text-secondary">Showing All Recent Welds</h6> : <h6 className="mt-3 text-secondary">Showing Welds Status "{filterState}"</h6>}
  {rows} 
  <Row className="justify-content-center mt-3">
         <Col xs="auto">
@@ -155,7 +175,7 @@ let rows = currentItems.map((x) => {
           />
         </Col>
       </Row>
-
+      </>}
       <Modal show={show} onHide={hideModal}>
         <Modal.Header closeButton>
           <Modal.Title className="text-secondary">#Product</Modal.Title>
