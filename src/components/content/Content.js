@@ -133,7 +133,7 @@ let rows = currentItems.map((x) => {
           </Card>
         </Col>
       </Row>
-
+{filterState === 'all' ? <h6 className="mt-3 text-secondary">Showing All Recent Welds</h6> : <h6 className="mt-3 text-secondary">Showing Welds Status "{filterState}"</h6>}
  {rows} 
  <Row className="justify-content-center mt-3">
         <Col xs="auto">
