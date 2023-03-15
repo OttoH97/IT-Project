@@ -3,6 +3,7 @@ import { Container, Row, Col, Form, Button, ListGroup, Alert, Modal } from 'reac
 import data from './emails.json';
 import NavBar from './Navbar';
 import classNames from "classnames";
+import Axios from 'axios';
 
 function Email({ toggle, isOpen }) {
 
@@ -13,10 +14,6 @@ function Email({ toggle, isOpen }) {
   const [show, setShow] = useState(false);
   const hideModal = () => setShow(false);
   const showModal = () => setShow(true);
-
-  const moduleUrl = new URL(import.meta.url);
-  const emailsJsonUrl = new URL('./emails.json', moduleUrl);
-  const relativePath = emailsJsonUrl.pathname;
 
   // useEffect(() => {
   //   const emailData = { emails };
@@ -31,15 +28,28 @@ function Email({ toggle, isOpen }) {
   //     .catch((error) => console.log(error));
   // }, [emails]);
 
+  // useEffect(() => {
+  //   const emailData = { emails: emails };
+  //   fetch('./emails', {
+  //     method: 'PUT',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify(emailData),
+  //   })
+  //     .catch((error) => console.log(error));
+  // }, [emails]);
+
   useEffect(() => {
-    const emailData = { emails: emails };
-    fetch('./emails.json', {
+    fetch("http://localhost:4000/emails", {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(emailData),
+      body: JSON.stringify({ emails }),
     })
+      // .then((response) => response.json())
+      // .then((data) => console.log(data))
       .catch((error) => console.log(error));
   }, [emails]);
   

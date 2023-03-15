@@ -104,6 +104,13 @@ const recipients = {
 
   //emails.json käsittelyyn
 
+  app.use(express.json());
+  app.use(cors({
+    origin: ["http://localhost:3000"],
+    methods: ["GET", "POST", "PUT"],
+    credentials: true
+  }))
+
   const path = require('path');
   const fs = require('fs');
   const emailsFilePath = path.join(__dirname, 'src', 'components', 'content', 'emails.json');
@@ -123,7 +130,7 @@ const recipients = {
     }
 
     // Read the emails.json file
-    fs.readFile(emailsFilePath, 'utf8', (err, data) => {
+    fs.readFile('../src/components/content/emails.json', 'utf8', (err, data) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ message: 'Internal server error.' });
@@ -132,11 +139,15 @@ const recipients = {
       // Parse the JSON data
       const jsonData = JSON.parse(data);
 
+      console.log(jsonData);
+
       // Update the emails property
       jsonData.emails = emails;
 
+      console.log(emails);
+
       // Write the updated data back to the emails.json file
-      fs.writeFile(emailsFilePath, JSON.stringify(jsonData), 'utf8', (err) => {
+      fs.writeFile('../src/components/content/emails.json', JSON.stringify(jsonData), 'utf8', (err) => {
         if (err) {
           console.error(err);
           return res.status(500).json({ message: 'Internal server error.' });
