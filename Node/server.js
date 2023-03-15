@@ -7,7 +7,8 @@ app.use(cors());
 const axios = require('axios');
 
 var http = require('http');
-
+app.use(express.json());
+app.use(express.urlencoded({extended:false}));
 
 
 
@@ -89,7 +90,7 @@ const recipients = {
       const data = await response.json();
       res.send(data);
     } catch (error) {
-      console.error(error);
+      console.error(error.response);
       res.status(500).send(error);
     }
   });
@@ -123,25 +124,31 @@ const recipients = {
   // });
 
   app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
-    const { explanation, user } = req.query;
-    const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState`;
+    const explanation = req.params.explanation;
+    const user = req.params.user;
+    const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState?explanation=${explanation}&user=${user}`;
+    console.log('url:', url);
     const headers = {
       'api_key': process.env.MY_API_KEY,
       'Accept': 'application/json',
       'Content-type' : 'application/json'
     };
-    const body = {
-      explanation,
-      user
-    };
+
+    console.log('params:', explanation);
     try {
-      const response = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(body) });
-      const data = await response.json();
-      res.send(data);
+      const response = await axios.post(url, null, { params: null, headers });
+      console.log('response:', response.data);
+      res.send(response.data);
     } catch (error) {
       console.error(error);
+      console.log(error.response.data)
+      console.log(error.response.status)
+      console.log(error.response.headers)
       res.status(500).send(error);
     }
   });
+    
+    
+    
   
   app.listen(4000, () => console.log('Server running on port 4000'));
