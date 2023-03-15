@@ -109,6 +109,7 @@ let rows = currentItems.map((x) => {
             </Row>
             <Row className="mt-3 d-flex justify-content-between">
               <Col>Text</Col>
+              <Col><Button variant="primary" onClick={showModal}>Change Status</Button></Col>
             </Row>
             
           </Accordion.Body>
