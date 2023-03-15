@@ -183,7 +183,7 @@ let rows = currentItems.map((x) => {
         </Modal.Header>
         <Modal.Body><Form>
             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label className="text-secondary">Add your name below for status change holder.</Form.Label>
+              <Form.Label className="text-secondary">Are you sure you want to update #product state from OK to Not Ok?</Form.Label>
               <Form.Control style={{border: "1px solid #ddd"}} type="text" placeholder="Name" autoFocus/>
             </Form.Group>
             
