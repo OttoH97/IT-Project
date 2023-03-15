@@ -111,9 +111,7 @@ const recipients = {
     credentials: true
   }))
 
-  const path = require('path');
   const fs = require('fs');
-  const emailsFilePath = path.join(__dirname, 'src', 'components', 'content', 'emails.json');
 
   // Route handler for modifying emails.json file
   app.put('/emails', (req, res) => {
