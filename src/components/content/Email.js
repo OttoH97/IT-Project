@@ -3,7 +3,7 @@ import { Container, Row, Col, Form, Button, ListGroup, Alert, Modal } from 'reac
 import data from './emails.json';
 import NavBar from './Navbar';
 import classNames from "classnames";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify'; //npm install --save react-toastify
 import 'react-toastify/dist/ReactToastify.css';
 
 function Email({ toggle, isOpen }) {
