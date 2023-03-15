@@ -3,7 +3,8 @@ import { Container, Row, Col, Form, Button, ListGroup, Alert, Modal } from 'reac
 import data from './emails.json';
 import NavBar from './Navbar';
 import classNames from "classnames";
-import Axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Email({ toggle, isOpen }) {
 
@@ -37,10 +38,12 @@ function Email({ toggle, isOpen }) {
     e.preventDefault();
     if (!newEmail) {
       setErrorMessage('Email cannot be empty');
+      toast.error("Email cannot be empty");
       return;
     }
     if (emails.find((email) => email === newEmail)) {
       setErrorMessage('Email already exists');
+      toast.error("Email already exists");
       return;
     }
     setEmails([...emails, newEmail]);
@@ -57,6 +60,7 @@ function Email({ toggle, isOpen }) {
     } catch (error) {
       console.error(error);
     }
+    toast.success("Email added");
   };
 
   const handleEdit = (index) => {
@@ -73,8 +77,10 @@ function Email({ toggle, isOpen }) {
       })
         .then((response) => response.json())
         .catch((error) => console.log(error));
+        toast.success("Edit successful");
     } else {
       setErrorMessage('Invalid or duplicate email');
+      toast.error("Invalid or duplicate email");
     }
   };
 
@@ -90,30 +96,33 @@ function Email({ toggle, isOpen }) {
     })
       .then((response) => response.json())
       .catch((error) => console.log(error));
+      toast.success("Email removed");
   };
 
   return (
+    
     <Container style={{ width: "1000px" }} fluid className={classNames("mail", { "is-open": isOpen })}>
+      <ToastContainer></ToastContainer>
       <NavBar toggle={toggle} name={'Mail List'} />
       <Row>
-        <Col>
-          <Form onSubmit={handleSubmit} className='d-flex'>
-          <Button variant="primary" type="submit" className='me-2' style={{width:"70px"}}>Add</Button>
-              <Form.Control type="email" placeholder="Enter email" value={newEmail} onChange={handleEmailChange} />
-          </Form>
-          {/*<span>{errorMessage && <Alert variant="danger">{errorMessage}</Alert>}</span>*/}
-          <ListGroup as='ol' variant='flush' className="mt-3">
-            {emails.map((email, index) => (
-              <ListGroup.Item key={index} as="li" className="d-flex justify-content-between align-items-center">
-                <span className='text-secondary'>{email}</span>
-                <span>
-                  <Button variant="outline-primary" size="sm" className="mx-2" onClick={() => handleEdit(index)}>Edit</Button>
-                  <Button size="sm" onClick={() => handleRemove(index)}>Remove</Button>
-                </span>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
-        </Col>
+          <Col>
+            <Form onSubmit={handleSubmit} className='d-flex'>
+                <Button variant="primary" type="submit" className='me-2' style={{width:"70px"}}>Add</Button>
+                <Form.Control type="email" placeholder="Enter email" value={newEmail} onChange={handleEmailChange} />
+            </Form>
+            {/*<span>{errorMessage && <Alert variant="danger">{errorMessage}</Alert>}</span>*/}
+            <ListGroup as='ol' variant='flush' className="mt-3">
+              {emails.map((email, index) => (
+                <ListGroup.Item key={index} as="li" className="d-flex justify-content-between align-items-center">
+                  <span className='text-secondary'>{email}</span>
+                  <span>
+                    <Button variant="outline-primary" size="sm" className="mx-2" onClick={() => handleEdit(index)}>Edit</Button>
+                    <Button size="sm" onClick={() => handleRemove(index)}>Remove</Button>
+                  </span>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Col>
       </Row>
 
       <Modal show={show} onHide={hideModal}>

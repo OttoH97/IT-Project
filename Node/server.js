@@ -137,8 +137,6 @@ const recipients = {
       // Parse the JSON data
       const jsonData = JSON.parse(data);
 
-      console.log(jsonData);
-
       // Update the emails property
       jsonData.emails = emails;
 
