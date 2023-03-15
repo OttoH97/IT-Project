@@ -15,31 +15,6 @@ function Email({ toggle, isOpen }) {
   const hideModal = () => setShow(false);
   const showModal = () => setShow(true);
 
-  // useEffect(() => {
-  //   const emailData = { emails };
-  //   fetch('./emails.json', {
-  //     method: 'PUT',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify(emailData),
-  //   })
-  //     .then((response) => response.json())
-  //     .catch((error) => console.log(error));
-  // }, [emails]);
-
-  // useEffect(() => {
-  //   const emailData = { emails: emails };
-  //   fetch('./emails', {
-  //     method: 'PUT',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify(emailData),
-  //   })
-  //     .catch((error) => console.log(error));
-  // }, [emails]);
-
   useEffect(() => {
     fetch("http://localhost:4000/emails", {
       method: 'PUT',
@@ -48,8 +23,8 @@ function Email({ toggle, isOpen }) {
       },
       body: JSON.stringify({ emails }),
     })
-      // .then((response) => response.json())
-      // .then((data) => console.log(data))
+      .then((response) => response.json())
+      .then((data) => console.log(data))
       .catch((error) => console.log(error));
   }, [emails]);
   
