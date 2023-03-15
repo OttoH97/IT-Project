@@ -14,18 +14,31 @@ function Email({ toggle, isOpen }) {
   const hideModal = () => setShow(false);
   const showModal = () => setShow(true);
 
+  // useEffect(() => {
+  //   const emailData = { emails };
+  //   fetch('./emails.json', {
+  //     method: 'PUT',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify(emailData),
+  //   })
+  //     .then((response) => response.json())
+  //     .catch((error) => console.log(error));
+  // }, [emails]);
+
   useEffect(() => {
-    const emailData = { emails };
-    fetch('emails.json', {
+    const emailData = { emails: emails };
+    fetch('./emails.json', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(emailData),
     })
-      .then((response) => response.json())
       .catch((error) => console.log(error));
   }, [emails]);
+  
 
   const handleEmailChange = (e) => {
     setNewEmail(e.target.value);
@@ -62,7 +75,7 @@ function Email({ toggle, isOpen }) {
     if (updatedEmail && !emails.find((email) => email === updatedEmail)) {
       setEmails([...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)]);
       const emailData = { emails: [...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)] };
-      fetch('emails.json', {
+      fetch('./emails.json', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +92,7 @@ function Email({ toggle, isOpen }) {
   const handleRemove = (index) => {
     setEmails([...emails.slice(0, index), ...emails.slice(index + 1)]);
     const emailData = { emails: [...emails.slice(0, index), ...emails.slice(index + 1)] };
-    fetch('emails.json', {
+    fetch('./emails.json', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
