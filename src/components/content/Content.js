@@ -123,7 +123,7 @@ let rows = currentItems.map((x) => {
       <NavBar toggle={toggle} name={'Dashboard'} />
       {loading ? <span class="loader"></span> : <>
       <Row>
-        <Col md={12} lg={4} onClick={() => {handleFilter("All"); setCurrentPage(1)}} className='zoom user-select-none'>
+        <Col md={12} lg={4} onClick={() => {handleFilter("All"); setCurrentPage(0);handlePageChange()}} className='zoom user-select-none'>
           <Card className="mb-3">
             <Card.Body>
               <div className="d-flex align-items-center">
@@ -133,7 +133,7 @@ let rows = currentItems.map((x) => {
             </Card.Body>
           </Card>
         </Col>
-        <Col sm={12} md={12} lg={4} onClick={() => {handleFilter("Ok"); setCurrentPage(1)} } className='zoom user-select-none'>
+        <Col sm={12} md={12} lg={4} onClick={() => {handleFilter("Ok"); setCurrentPage(0)} } className='zoom user-select-none'>
           <Card className="mb-3">
             <Card.Body>
               <div className="d-flex align-items-center">
@@ -143,7 +143,7 @@ let rows = currentItems.map((x) => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={12} lg={4} onClick={() => { handleFilter("Not Ok"); setCurrentPage(1)}} className='zoom user-select-none'>
+        <Col md={12} lg={4} onClick={() => { handleFilter("Not Ok"); setCurrentPage(0)}} className='zoom user-select-none'>
           <Card className="mb-3">
             <Card.Body>
               <div className="d-flex align-items-center">
