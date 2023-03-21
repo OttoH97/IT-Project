@@ -70,7 +70,7 @@ app.get('/welds', async (req, res) => {//hakee kaikki hitsaukset
       });
   
       if (notOkWelds.length > 0) { //arraylistin ollessa muuta kuin tyhjä lähdetään ajamaan sähköpostin lähetystä.
-        const recipients = JSON.parse(fs.readFileSync('recipient.json')); // tässä haetaan sähköpostilistasta osoitteet, Ulkoinen JSON -tiedosto. 
+        const recipients = JSON.parse(fs.readFileSync('recipients.json')); // tässä haetaan sähköpostilistasta osoitteet, Ulkoinen JSON -tiedosto. 
         
         const emailPromises = [];
         const Mailoptions = {
@@ -96,7 +96,7 @@ app.get('/welds', async (req, res) => {//hakee kaikki hitsaukset
         Promise.all(emailPromises)
           .then(() => {
             console.log('All emails sent');
-            res.send(notOkWelds);
+            res.send(data);
           })
           .catch(error => {
             console.error(error);
