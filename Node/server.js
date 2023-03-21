@@ -123,6 +123,7 @@ const recipients = {
   //   });
   // });
 
+  //change state
   app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
     const explanation = req.params.explanation;
     const user = req.params.user;
@@ -144,6 +145,34 @@ const recipients = {
       console.log(error.response.data)
       console.log(error.response.status)
       console.log(error.response.headers)
+      res.status(500).send(error);
+    }
+  });
+
+  // part haku tapahtuu täällä
+
+  app.get('/api/v4/Parts/:partItemNumber/:partSerialNumber', async (req, res) => {
+    const partItemNumber = req.params.partItemNumber;
+    const partSerialNumber = req.params.partSerialNumber;
+  
+    const apiKey = req.get('api_key');
+    const acceptHeader = req.get('Accept');
+  
+
+  
+    const url = `http://weldcube.ky.local/api/v4/Parts/${partItemNumber}/${partSerialNumber}`;
+  
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          'api_key': process.env.MY_API_KEY,
+          'Accept': 'application/json',
+        },
+      });
+  
+      res.json(response.data);
+    } catch (error) {
+      console.error(error);
       res.status(500).send(error);
     }
   });
