@@ -63,8 +63,19 @@ function Email({ toggle, isOpen }) {
     toast.success("Email added");
   };
 
-  const handleEdit = (index) => {
-    const updatedEmail = prompt('Enter updated email', emails[index]);
+  const handleEdit = (index) => { // Updated 22.3.2023
+    const originalEmail = emails[index];
+    const updatedEmail = prompt('Enter updated email', originalEmail);
+  
+    if (updatedEmail === null) { // handle case where user clicked cancel
+      return;
+    }
+  
+    if (updatedEmail.trim() === originalEmail) { // check if the email is the same as the original
+      toast.success("Edit successful (no changes made)");
+      return;
+    }
+  
     if (updatedEmail && !emails.find((email) => email === updatedEmail)) {
       setEmails([...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)]);
       const emailData = { emails: [...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)] };

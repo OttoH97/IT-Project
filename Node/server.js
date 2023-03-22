@@ -175,6 +175,9 @@ const recipients = {
         if (data.Errors) {
           console.log("Errors:", data.Errors);
         }
+        if (data.WeldData) {
+          console.log(data.WeldData);
+        }
         const weldingSpeed = data.WeldData.Stats.find(stat => stat.Name === "Welding speed").Mean / 60; // convert cm/min to cm/sec
         console.log("Welding Speed: " + weldingSpeed + " cm/sec");
         const duration = data.Duration;
@@ -191,7 +194,7 @@ const recipients = {
   da4f459f-9443-4108-8b97-28534c80f723
   7b514c01-8a19-433b-81e1-5840c116f650*/
 
-  getWeldPosition("7b514c01-8a19-433b-81e1-5840c116f650")
+  getWeldPosition("60915375-a5db-4ece-84ea-709906b0031d")
   .then(position => {
     console.log(`The position of the weld is ${position} cm.`);
   })
