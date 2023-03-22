@@ -199,6 +199,29 @@ const recipients = {
     }
   });
     
+
+  //section tiedot
+
+  app.get('/api/v4/Welds/:weldId/Sections/:sectionNumber', async (req, res) => {
+    const weldId = req.params.weldId;
+    const sectionNumber = req.params.sectionNumber;
+  
+    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/Sections/${sectionNumber}`;
+  
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          'api_key': process.env.MY_API_KEY,
+          'Accept': 'application/json',
+        },
+      });
+  
+      res.json(response.data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
     
   
   app.listen(4000, () => console.log('Server running on port 4000'));
