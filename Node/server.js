@@ -112,6 +112,7 @@ const recipients = {
   }))
 
   const fs = require('fs');
+  const { response } = require('express');
 
   // Route handler for modifying emails.json file
   app.put('/emails', (req, res) => {
@@ -155,6 +156,48 @@ const recipients = {
     });
   });
 
+  // Lasketaan hitsauksen paikka
+
+  function getWeldPosition(weldId) {
+    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}`;
+    const headers = {
+      'api_key': process.env.MY_API_KEY,
+      'Accept': 'application/json'
+    };
+    return fetch(url, { headers })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(response.data);
+      })
+      .then(data => {
+        if (data.Errors) {
+          console.log("Errors:", data.Errors);
+        }
+        const weldingSpeed = data.WeldData.Stats.find(stat => stat.Name === "Welding speed").Mean / 60; // convert cm/min to cm/sec
+        console.log("Welding Speed: " + weldingSpeed + " cm/sec");
+        const duration = data.Duration;
+        console.log("Weld Duration: " + duration + " s");
+        const position = weldingSpeed * duration;
+        return position;
+      });
+  }
+
+  /* WeldID: 
+  f50d146d-9aac-4861-b03e-e3281923f861 
+  60915375-a5db-4ece-84ea-709906b0031d
+  de5be455-acfa-48a5-abdf-b6eb9d3e65da
+  da4f459f-9443-4108-8b97-28534c80f723
+  7b514c01-8a19-433b-81e1-5840c116f650*/
+
+  getWeldPosition("7b514c01-8a19-433b-81e1-5840c116f650")
+  .then(position => {
+    console.log(`The position of the weld is ${position} cm.`);
+  })
+  .catch(error => {
+    console.error(`Error retrieving weld position: ${error}`);
+  });
 
   //Tässä testataan POST
 
