@@ -155,8 +155,7 @@ const recipients = {
     const partItemNumber = req.params.partItemNumber;
     const partSerialNumber = req.params.partSerialNumber;
   
-    const apiKey = req.get('api_key');
-    const acceptHeader = req.get('Accept');
+
   
 
   
@@ -177,6 +176,28 @@ const recipients = {
     }
   });
     
+
+  //actual value haku tapahtuu täällä
+
+  app.get('/api/v4/Welds/:weldId/ActualValues', async (req, res) => {
+    const weldId = req.params.weldId;
+
+    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
+  
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          'api_key': process.env.MY_API_KEY,
+          'Accept': 'application/json',
+        },
+      });
+  
+      res.json(response.data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
     
     
   
