@@ -20,7 +20,7 @@ function Content({ toggle, isOpen }) {
   const [loading, setLoading] = useState(true);
 
   const [partToShow, setPartToShow] = useState([]);
-  const [weldID, setWeldID] = useState('')
+  const [weldID, setWeldID] = useState('0eda2882-9ada-449d-8c7b-2a2d1aae0cf5')
   const [weldDetailToShow, setWeldDetailToShow] = useState([])
 
   // Actualvalues
@@ -29,6 +29,9 @@ function Content({ toggle, isOpen }) {
   const [violations, setViolations] = useState([]);
 
   const [currentMax, setCurrentMax] = useState(0);
+  const [currentMin, setCurrentMin] = useState(0);
+
+  const [activeKey, setActiveKey] = useState(null);
 
 
   // Modal
@@ -86,12 +89,12 @@ function Content({ toggle, isOpen }) {
   //     });
   // }, [weldID]);
 
-  useEffect(() => {
+
     axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`)
       .then(response => {
         const actualValuesData = response.data.ActualValues;
 
-        axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${1}`)
+        axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${3}`)
           .then(response => {
             const qMasterValuesData = response.data.QMaster.QMasterLimitValuesList;
             
@@ -100,7 +103,7 @@ function Content({ toggle, isOpen }) {
               QMasterLimitValuesList: qMasterValuesData
             }
             setActualValues(actualValuesWithQMaster);
-            setCurrentMax(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue)
+            setCurrentMax(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue+actualValuesWithQMaster.QMasterLimitValuesList[0].UpperLimitValue)
           })
           .catch(error => {
             console.log(error);
@@ -108,7 +111,6 @@ function Content({ toggle, isOpen }) {
       })
       .catch(error => {
         console.log(error);
-      });
   }, [weldID]);
 
   // Filters
@@ -153,6 +155,10 @@ function Content({ toggle, isOpen }) {
     return date.toLocaleString('en-US', options);
   }
 
+  const handleAccordionClick = (eventKey) => {
+    setActiveKey(eventKey === activeKey ? null : eventKey);
+  };
+
   const stats = weldDetailToShow.WeldData?.Stats?.map((stat) => (
     <tr key={stat.Name}>
       <td>{stat.Name}</td>
@@ -187,12 +193,12 @@ function Content({ toggle, isOpen }) {
 
 console.log(actualValues);
 
-  let rows = currentItems.map((x) => {
+  let rows = currentItems.map((x,index) => {
     const { Id, Timestamp, ProcessingStepNumber, PartSerialNumber, MachineType, MachineSerialNumber, Details, State, Welder } = x;
 
     return (
-      <Accordion className="mt-3" onClick={() => setWeldID(Id)}>
-        <Accordion.Item eventKey="0" className="border-0 shadow-sm">
+      <Accordion className="mt-3" onClick={() => setWeldID(Id)} activeKey={activeKey} onSelect={handleAccordionClick}>
+        <Accordion.Item eventKey={index} className="border-0 shadow-sm">
           <Accordion.Header>
             <Row className='align-items-center w-100'>
               <Col xs={'auto'}>
@@ -306,7 +312,7 @@ console.log(actualValues);
           {actualValues.Values && actualValues.Values.map(value => (
             <tr key={value.TimeStamp}>
               <td>{value.TimeStamp}</td>
-              <td>{value.Values[0].Max}</td>
+              <td style={value.Values[0].Max > currentMax ? { color: 'red' } : {}}>{value.Values[0].Max}</td>
               <td>{value.Values[1].Max}</td>
               <td>{value.Values[2].Max}</td>
               <td>{value.Values[3].Max}</td>
@@ -336,7 +342,7 @@ console.log(actualValues);
             </tr>
           ))}
         </tbody>
-        {currentMax}
+        {currentMax} {currentMin}
         
       </table>
               </div>
