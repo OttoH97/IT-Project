@@ -61,13 +61,13 @@ const recipients = {
       const response = await fetch(url, { headers });
       const data = await response.json();
       res.send(data);
-      console.log(data.WeldInfos[0].State);
+      //console.log(data.WeldInfos[0].State);
       const AllWelds = [data];
       AllWelds.forEach(jsonObject=> {
         jsonObject.WeldInfos.forEach(weldInfo=>{
             const state = weldInfo.State;
             const id = weldInfo.Id;
-            console.log(`State value: ${state}`);
+            //console.log(`State value: ${state}`);
             if(state == 'NotOk'){
             Mailoptions.text = "Ongelmia " + id + " hitsissä";
             }
@@ -144,7 +144,7 @@ const recipients = {
       // Update the emails property
       jsonData.emails = emails;
 
-      console.log(emails);
+      //console.log(emails);
 
       // Write the updated data back to the emails.json file
       fs.writeFile('../src/components/content/emails.json', JSON.stringify(jsonData), 'utf8', (err) => {
