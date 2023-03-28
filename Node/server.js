@@ -35,14 +35,14 @@ const transporter = nodeMailer.createTransport({
 });
 //Mailoptions.to mÃ¤Ã¤ritellÃ¤Ã¤n JSON-listan mappauksessa. 
 const Mailoptions  = {
-    from: 'WeldMailer123@gmail.com',
-    subject: 'testataan',
+    // from: 'WeldMailer123@gmail.com',
+    // subject: 'testataan',
      
 };
 //TÃ¤mÃ¤ kohta korvataan erillisellÃ¤ Json tiedostolla/objektilla
 const recipients = {
-    'Ville Fröberg': 'viliho.fr@hotmail.com',
-    'Opiskelija Ville': 'ville.froberg@edu.savonia.fi'
+    // 'Ville Fröberg': 'viliho.fr@hotmail.com',
+    // 'Opiskelija Ville': 'ville.froberg@edu.savonia.fi'
     
   };
 //for -loopissa kÃ¤ydÃ¤Ã¤n lÃ¤pi jokainen objektissa oleva sÃ¤hkÃ¶posti
