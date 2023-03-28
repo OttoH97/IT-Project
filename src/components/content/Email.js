@@ -5,8 +5,6 @@ import NavBar from './Navbar';
 import classNames from "classnames";
 import { ToastContainer, toast } from 'react-toastify'; //npm install --save react-toastify
 import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer, toast } from 'react-toastify'; //npm install --save react-toastify
-import 'react-toastify/dist/ReactToastify.css';
 
 function Email({ toggle, isOpen }) {
 
@@ -42,12 +40,10 @@ function Email({ toggle, isOpen }) {
     if (!newEmail) {
       setErrorMessage('Email cannot be empty');
       toast.error("Email cannot be empty");
-      toast.error("Email cannot be empty");
       return;
     }
     if (emails.find((email) => email === newEmail)) {
       setErrorMessage('Email already exists');
-      toast.error("Email already exists");
       toast.error("Email already exists");
       return;
     }
@@ -65,7 +61,6 @@ function Email({ toggle, isOpen }) {
     } catch (error) {
       console.error(error);
     }
-    toast.success("Email added");
     toast.success("Email added");
   };
 
@@ -95,10 +90,8 @@ function Email({ toggle, isOpen }) {
         .then((response) => response.json())
         .catch((error) => console.log(error));
         toast.success("Edit successful");
-      toast.success("Edit successful");
     } else {
       setErrorMessage('Invalid or duplicate email');
-      toast.error("Invalid or duplicate email");
       toast.error("Invalid or duplicate email");
     }
   };
@@ -116,7 +109,6 @@ function Email({ toggle, isOpen }) {
       .then((response) => response.json())
       .catch((error) => console.log(error));
       toast.success("Email removed");
-    toast.success("Email removed");
   };
 
   return (

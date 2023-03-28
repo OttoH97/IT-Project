@@ -35,14 +35,14 @@ const transporter = nodeMailer.createTransport({
 });
 //Mailoptions.to mÃ¤Ã¤ritellÃ¤Ã¤n JSON-listan mappauksessa. 
 const Mailoptions  = {
-    // from: 'WeldMailer123@gmail.com',
-    // subject: 'testataan',
+     from: 'WeldMailer123@gmail.com',
+     subject: 'testataan',
      
 };
 //TÃ¤mÃ¤ kohta korvataan erillisellÃ¤ Json tiedostolla/objektilla
 const recipients = {
-    // 'Ville Fröberg': 'viliho.fr@hotmail.com',
-    // 'Opiskelija Ville': 'ville.froberg@edu.savonia.fi'
+     'Ville Fröberg': 'viliho.fr@hotmail.com',
+     'Opiskelija Ville': 'ville.froberg@edu.savonia.fi'
     
   };
 //for -loopissa kÃ¤ydÃ¤Ã¤n lÃ¤pi jokainen objektissa oleva sÃ¤hkÃ¶posti
@@ -102,6 +102,9 @@ const recipients = {
     }
   });
 
+  /////////////////
+  //  EMAIL JSON //
+  /////////////////
   //emails.json käsittelyyn
 
   app.use(express.json());
@@ -258,66 +261,6 @@ const recipients = {
         res.status(500).send(error);
       }
     });
+ 
   
-/////////////////
-//  EMAIL JSON //
-/////////////////
-//emails.json käsittelyyn
-
-app.use(express.json());
-app.use(cors({
-  origin: ["http://localhost:3000"],
-  methods: ["GET", "POST", "PUT"],
-  credentials: true
-}))
-
-const fs = require('fs');
-
-// Route handler for modifying emails.json file
-app.put('/emails', (req, res) => {
-  const { emails } = req.body;
-
-  // Check if emails property exists in the request body
-  if (!emails) {
-    return res.status(400).json({ message: 'Emails property missing from request body.' });
-  }
-
-  // Check if emails is an array
-  if (!Array.isArray(emails)) {
-    return res.status(400).json({ message: 'Emails property must be an array.' });
-  }
-
-  // Read the emails.json file
-  fs.readFile('../src/components/content/emails.json', 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Internal server error.' });
-    }
-
-    // Parse the JSON data
-    const jsonData = JSON.parse(data);
-
-    // Update the emails property
-    jsonData.emails = emails;
-
-    console.log(emails);
-
-    // Write the updated data back to the emails.json file
-    fs.writeFile('../src/components/content/emails.json', JSON.stringify(jsonData), 'utf8', (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ message: 'Internal server error.' });
-      }
-
-      // Send a response back to the client
-      res.json({ message: 'Emails updated successfully.' });
-    });
-  });
-});
-
-
-
-
-
-  app.listen(4000, () => console.log('Server running on port 4000'));
-})
+  });app.listen(4000, () => console.log('Server running on port 4000'));
