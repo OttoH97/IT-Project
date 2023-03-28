@@ -102,6 +102,26 @@ const recipients = {
     }
   });
 
+  // ActualValues test
+
+  app.get('/welds/:weldId/actualvalues', async (req, res) => {
+    const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ActualValues`;
+    const headers = {
+      'api_key': process.env.MY_API_KEY,
+      'Accept': 'application/json'
+    };
+  
+    try {
+      const response = await axios.get(url, { headers });
+      const data = response.data;
+      res.send(data);
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
+
   /////////////////
   //  EMAIL JSON //
   /////////////////
