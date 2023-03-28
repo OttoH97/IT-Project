@@ -43,9 +43,15 @@ app.post('/send-email', async (req, res) => { //POST metodi, sähköpostin lähe
   };
   
   notOkWelds.forEach(weld => {
-    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//käydän getistä saadut notok hitsaukset läpi
+    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//käydään getistä saadut notok hitsaukset läpi
   });
   
+ /* const filteredRecipients = {};
+  for (const [name, email] of Object.entries(recipients)) {
+    if (!sentEmails.some(emailInfo => emailInfo.email === email && emailInfo.weldIds.length === notOkWelds.length)) {
+      filteredRecipients[name] = email;
+    }
+  }*/ 
   for (const [name, email] of Object.entries(recipients)) {
     Mailoptions.to = email;
     console.log(`Sending email to: ${name} (${email})`);
@@ -55,7 +61,14 @@ app.post('/send-email', async (req, res) => { //POST metodi, sähköpostin lähe
         .catch(error => console.error(error))
     );
   }
-  
+  if (emailPromises.length > 0) {
+    // Add sent email info to sentEmails array
+    const sentEmailInfo = {
+      email: recipients,
+      weldIds: notOkWelds.map(w => w.id)
+    };
+    sentEmails.push(sentEmailInfo);
+  }
   Promise.all(emailPromises)
     .then(() => {
       console.log('All emails sent');
@@ -116,19 +129,20 @@ app.get('/welds', async (req, res) => {
     const uniqueNotOkWelds = Array.from(notOkWelds).map(w => JSON.parse(w));
     console.log(`Found ${uniqueNotOkWelds.length} unique NotOk welds.`);
 
-    if (uniqueNotOkWelds.length > 0) { //uniqueNotOkWeldsin ollessa muuta kuin tyhjä, lä¤hdetän kutsumaan sähköpostin lähetys postmetodia. 
+    const newNotOkWelds = uniqueNotOkWelds.filter(w => !sentEmails.some(emailInfo => emailInfo.weldIds.includes(w.id)));
+    if (newNotOkWelds.length > 0) { //newNotOkWeldsin ollessa muuta kuin tyhjä, lähdetään kutsumaan sähköpostin lähetys postmetodia. 
       // Send email to recipients
       const response = await fetch('http://localhost:4000/send-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ notOkWelds: uniqueNotOkWelds })
+        body: JSON.stringify({ notOkWelds: newNotOkWelds })
       });
       const emailResponse = await response.text();
       console.log(emailResponse);
     } else {
-      console.log('No NotOk welds found');
+      console.log('No new NotOk welds found');
     }
 
     res.send(data);
@@ -147,7 +161,7 @@ setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin välein.
     .catch(error => console.error(error));
 }, 36000000);// Tunnin välein
 
-  //Täällä haetaan yksittäinen hitsin lisätiedot klikkauksella
+  //täällä haetaan yksittäinen hitsin lisÃ¤tiedot klikkauksella
   app.get('/welds/:weldId', async (req, res) => {
     const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}`;
     const headers = {
@@ -171,7 +185,7 @@ setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin välein.
 /*   const apiUrl = 'http://weldcube.ky.local/api/v4/Welds/{WeldID}/ChangeState'; */
 
   // app.post('/welds/change-state', (req, res) => {
-  //   //const { WeldId, explanation, user } = req.body; // tÃƒÆ’Ã‚Â¤mÃƒÆ’Ã‚Â¤ ottaa frontin puolelta responsen. EI kÃƒÆ’Ã‚Â¤ytÃƒÆ’Ã‚Â¶ssÃƒÆ’Ã‚Â¤ ennen kuin front valmis.
+  //   //const { WeldId, explanation, user } = req.body; //  ottaa frontin puolelta responsen. EI käytettävissä ennen kuin front valmis.
   
   //   const data = {
   //     WeldId,
