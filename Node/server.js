@@ -175,12 +175,12 @@ const recipients = {
         return response.json(response.data);
       })
       .then(data => {
-        if (data.Errors) {
-          console.log("Errors:", data.Errors);
-        }
-        if (data.WeldData) {
-          console.log(data.WeldData);
-        }
+        // if (data.Errors) {
+        //   console.log("Errors:", data.Errors);
+        // }
+        // if (data.WeldData) {
+        //   console.log(data.WeldData);
+        // }
         const weldingSpeed = data.WeldData.Stats.find(stat => stat.Name === "Welding speed").Mean / 60; // convert cm/min to cm/sec
         console.log("Welding Speed: " + weldingSpeed + " cm/sec (" + weldingSpeed * 60 + " cm/min)");
         const duration = data.Duration;
