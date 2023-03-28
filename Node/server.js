@@ -48,6 +48,7 @@ app.post('/send-email', async (req, res) => { //POST metodi, sÃ¤hkÃ¶postin l
           <p><strong>Part Article Number:</strong> ${weld.particle}</p>
           <p><strong>Timestamp:</strong> ${weld.time}</p>
         </li>
+        <hr>
       `).join('')}
     </ul>
   `
