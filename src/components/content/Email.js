@@ -5,6 +5,8 @@ import NavBar from './Navbar';
 import classNames from "classnames";
 import { ToastContainer, toast } from 'react-toastify'; //npm install --save react-toastify
 import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from 'react-toastify'; //npm install --save react-toastify
+import 'react-toastify/dist/ReactToastify.css';
 
 function Email({ toggle, isOpen }) {
 
@@ -26,9 +28,10 @@ function Email({ toggle, isOpen }) {
     })
       .then((response) => response.json())
       .then((data) => console.log(data))
+      .then((data) => console.log(data))
       .catch((error) => console.log(error));
   }, [emails]);
-  
+
 
   const handleEmailChange = (e) => {
     setNewEmail(e.target.value);
@@ -39,16 +42,18 @@ function Email({ toggle, isOpen }) {
     if (!newEmail) {
       setErrorMessage('Email cannot be empty');
       toast.error("Email cannot be empty");
+      toast.error("Email cannot be empty");
       return;
     }
     if (emails.find((email) => email === newEmail)) {
       setErrorMessage('Email already exists');
       toast.error("Email already exists");
+      toast.error("Email already exists");
       return;
     }
     setEmails([...emails, newEmail]);
     setNewEmail('');
-  
+
     try {
       await fetch('/api/emails', {
         method: 'POST',
@@ -60,6 +65,7 @@ function Email({ toggle, isOpen }) {
     } catch (error) {
       console.error(error);
     }
+    toast.success("Email added");
     toast.success("Email added");
   };
 
@@ -79,7 +85,7 @@ function Email({ toggle, isOpen }) {
     if (updatedEmail && !emails.find((email) => email === updatedEmail)) {
       setEmails([...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)]);
       const emailData = { emails: [...emails.slice(0, index), updatedEmail, ...emails.slice(index + 1)] };
-      fetch('./emails.json', {
+      fetch('././emails.json', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -89,8 +95,10 @@ function Email({ toggle, isOpen }) {
         .then((response) => response.json())
         .catch((error) => console.log(error));
         toast.success("Edit successful");
+      toast.success("Edit successful");
     } else {
       setErrorMessage('Invalid or duplicate email');
+      toast.error("Invalid or duplicate email");
       toast.error("Invalid or duplicate email");
     }
   };
@@ -98,7 +106,7 @@ function Email({ toggle, isOpen }) {
   const handleRemove = (index) => {
     setEmails([...emails.slice(0, index), ...emails.slice(index + 1)]);
     const emailData = { emails: [...emails.slice(0, index), ...emails.slice(index + 1)] };
-    fetch('./emails.json', {
+    fetch('././emails.json', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -108,22 +116,29 @@ function Email({ toggle, isOpen }) {
       .then((response) => response.json())
       .catch((error) => console.log(error));
       toast.success("Email removed");
+    toast.success("Email removed");
   };
 
   return (
     
+
     <Container style={{ width: "1000px" }} fluid className={classNames("mail", { "is-open": isOpen })}>
-      <ToastContainer></ToastContainer>
+      <ToastContainer
+        className='toast-position'
+        position="top-center"
+        autoClose={1500}
+        hideProgressBar={false} />
       <NavBar toggle={toggle} name={'Mail List'} />
       <Row>
-          <Col>
-            <Form onSubmit={handleSubmit} className='d-flex'>
-                <Button variant="primary" type="submit" className='me-2' style={{width:"70px"}}>Add</Button>
-                <Form.Control type="email" placeholder="Enter email" value={newEmail} onChange={handleEmailChange} />
-            </Form>
-            {/*<span>{errorMessage && <Alert variant="danger">{errorMessage}</Alert>}</span>*/}
-            <ListGroup as='ol' variant='flush' className="mt-3">
-              {emails.map((email, index) => (
+        <Col>
+          <Form onSubmit={handleSubmit} className='d-flex'>
+            <Button variant="primary" type="submit" className='me-2' style={{ width: "70px" }}>Add</Button>
+            <Form.Control type="email" placeholder="Enter email" value={newEmail} onChange={handleEmailChange} />
+          </Form>
+          {/*<span>{errorMessage && <Alert variant="danger">{errorMessage}</Alert>}</span>*/}
+          <ListGroup as='ol' variant='flush' className="mt-3">
+            {emails.length > 0 ? (
+              emails.map((email, index) => (
                 <ListGroup.Item key={index} as="li" className="d-flex justify-content-between align-items-center">
                   <span className='text-secondary'>{email}</span>
                   <span>
@@ -131,9 +146,14 @@ function Email({ toggle, isOpen }) {
                     <Button size="sm" onClick={() => handleRemove(index)}>Remove</Button>
                   </span>
                 </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Col>
+              ))
+            ) : (
+              <ListGroup.Item as="li" className="p-3">
+                <span className='text-secondary text-center'>Mail list is empty</span>
+                </ListGroup.Item>
+            )}
+          </ListGroup>
+        </Col>
       </Row>
 
       <Modal show={show} onHide={hideModal}>
@@ -141,15 +161,15 @@ function Email({ toggle, isOpen }) {
           <Modal.Title className="text-secondary">#Product</Modal.Title>
         </Modal.Header>
         <Modal.Body><Form>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label>Name</Form.Label>
-              <Form.Control className="border-1" type="text" autoFocus/>
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-              <Form.Label>Example textarea</Form.Label>
-              <Form.Control as="textarea" rows={3} />
-            </Form.Group>
-          </Form></Modal.Body>
+          <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+            <Form.Label>Name</Form.Label>
+            <Form.Control className="border-1" type="text" autoFocus />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+            <Form.Label>Example textarea</Form.Label>
+            <Form.Control as="textarea" rows={3} />
+          </Form.Group>
+        </Form></Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={hideModal}>
             Close
