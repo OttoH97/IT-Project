@@ -43,7 +43,7 @@ app.post('/send-email', async (req, res) => { //POST metodi, sähköpostin lähe
   };
   
   notOkWelds.forEach(weld => {
-    Mailoptions.text += `Weld Id: ${weld.id}\n`;//käydään getistä saadut notok hitsaukset läpi
+    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//käydän getistä saadut notok hitsaukset läpi
   });
   
   for (const [name, email] of Object.entries(recipients)) {
@@ -90,11 +90,23 @@ app.get('/welds', async (req, res) => {
         const state = weldInfo.State;
         const id = weldInfo.Id;
         const stats = weldInfo.status;
-        console.log(`State value: ${state}`);
+        const timestamp = weldInfo.Timestamp;
+        var tomonth=new Date(timestamp).getMonth()+1;
+        var toyear=new Date(timestamp).getFullYear();
+        var todate=new Date(timestamp).getDate();
+        var hours = new Date(timestamp).getHours();
+        var minutes = new Date(timestamp).getMinutes();
+        minutes = minutes <= 9 ? '0' + minutes : minutes;
+        var original_date=todate+'.'+tomonth+'.'+toyear + " " + hours + ":"+minutes;
+        const particle = weldInfo.PartArticleNumber;
+
+        console.log(`AIKA VALUE: ${original_date}`);
         
         if (state === 'NotOk') {// jos state on NotOk laitetaan noOkWelds arraylistiin. 
           notOkWelds.add(JSON.stringify({
             id: id,
+            time: original_date,
+            particle: particle,
             //status: weldInfo.Status
           }));
         }
@@ -104,7 +116,7 @@ app.get('/welds', async (req, res) => {
     const uniqueNotOkWelds = Array.from(notOkWelds).map(w => JSON.parse(w));
     console.log(`Found ${uniqueNotOkWelds.length} unique NotOk welds.`);
 
-    if (uniqueNotOkWelds.length > 0) { //uniqueNotOkWeldsin ollessa muuta kuin tyhjä, lähdetään kutsumaan sähköpostin lähetys postmetodia. 
+    if (uniqueNotOkWelds.length > 0) { //uniqueNotOkWeldsin ollessa muuta kuin tyhjä, lä¤hdetän kutsumaan sähköpostin lähetys postmetodia. 
       // Send email to recipients
       const response = await fetch('http://localhost:4000/send-email', {
         method: 'POST',
@@ -133,9 +145,9 @@ setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin välein.
       // Do something with the data
     })
     .catch(error => console.error(error));
-}, 36000000);// Tunnin vÃ¤lein
+}, 36000000);// Tunnin välein
 
-  //TÃƒÂ¤ssÃƒÂ¤ haetaan yksittÃƒÂ¤inen hitsin lisÃƒÂ¤tiedot klikkauksella
+  //Täällä haetaan yksittäinen hitsin lisätiedot klikkauksella
   app.get('/welds/:weldId', async (req, res) => {
     const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}`;
     const headers = {
@@ -154,12 +166,12 @@ setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin välein.
     }
   });
 
-  //TÃƒÂ¤ssÃƒÂ¤ testataan POST
+  //täällä testataan POST
 
 /*   const apiUrl = 'http://weldcube.ky.local/api/v4/Welds/{WeldID}/ChangeState'; */
 
   // app.post('/welds/change-state', (req, res) => {
-  //   //const { WeldId, explanation, user } = req.body; // tÃƒÂ¤mÃƒÂ¤ ottaa frontin puolelta responsen. EI kÃƒÂ¤ytÃƒÂ¶ssÃƒÂ¤ ennen kuin front valmis.
+  //   //const { WeldId, explanation, user } = req.body; // tÃƒÆ’Ã‚Â¤mÃƒÆ’Ã‚Â¤ ottaa frontin puolelta responsen. EI kÃƒÆ’Ã‚Â¤ytÃƒÆ’Ã‚Â¶ssÃƒÆ’Ã‚Â¤ ennen kuin front valmis.
   
   //   const data = {
   //     WeldId,
@@ -208,7 +220,7 @@ setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin välein.
     }
   });
 
-  // part haku tapahtuu tÃƒÂ¤ÃƒÂ¤llÃƒÂ¤
+  // part haku tapahtuu tässä
 
   app.get('/api/v4/Parts/:partItemNumber/:partSerialNumber', async (req, res) => {
     const partItemNumber = req.params.partItemNumber;
