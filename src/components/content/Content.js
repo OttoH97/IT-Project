@@ -20,7 +20,7 @@ function Content({ toggle, isOpen }) {
   const [loading, setLoading] = useState(true);
 
   const [partToShow, setPartToShow] = useState([]);
-  const [weldID, setWeldID] = useState('0eda2882-9ada-449d-8c7b-2a2d1aae0cf5')
+  const [weldID, setWeldID] = useState('')
   const [weldDetailToShow, setWeldDetailToShow] = useState([])
 
   // Actualvalues
@@ -104,6 +104,7 @@ function Content({ toggle, isOpen }) {
             }
             setActualValues(actualValuesWithQMaster);
             setCurrentMax(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue+actualValuesWithQMaster.QMasterLimitValuesList[0].UpperLimitValue)
+            setCurrentMin(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue-(actualValuesWithQMaster.QMasterLimitValuesList[0].UpperLimitValue))
           })
           .catch(error => {
             console.log(error);

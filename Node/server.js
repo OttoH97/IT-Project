@@ -51,8 +51,8 @@ app.use(express.urlencoded({extended:false}));
   
     //change state
     app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
-      const explanation = req.params.explanation;
-      const user = req.params.user;
+      const explanation = req.query.explanation;
+      const user = req.query.user;
       const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState?explanation=${explanation}&user=${user}`;
       console.log('url:', url);
       const headers = {
