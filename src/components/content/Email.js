@@ -72,7 +72,7 @@ function Email({ toggle, isOpen }) {
     }
   
     if (updatedEmail.trim() === originalEmail) { // check if the email is the same as the original
-      toast.success("Edit successful (no changes made)");
+      toast.success("OK. No Changes made.");
       return;
     }
   
