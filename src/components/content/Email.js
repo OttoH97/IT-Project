@@ -139,7 +139,7 @@ function Email({ toggle, isOpen }) {
               ))
             ) : (
               <ListGroup.Item as="li" className="p-3">
-                <span className='text-secondary text-center'>Mail list is empty</span>
+                <span className='text-secondary text-center'>No entries in mailing list.</span>
                 </ListGroup.Item>
             )}
           </ListGroup>

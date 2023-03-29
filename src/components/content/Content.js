@@ -207,7 +207,7 @@ function Content({ toggle, isOpen }) {
 console.log(actualValues);
 
   let rows = currentItems.map((x,index) => {
-    const { Id, Timestamp, ProcessingStepNumber, PartSerialNumber, MachineType, MachineSerialNumber, Details, State, Welder } = x;
+    const { Id, Timestamp, ProcessingStepNumber, PartSerialNumber, PartArticleNumber, MachineType, MachineSerialNumber, Details, State, Welder } = x;
 
     return (
       <Accordion className="mt-3" onClick={() => setWeldID(Id)} activeKey={activeKey} onSelect={handleAccordionClick}>
@@ -217,7 +217,7 @@ console.log(actualValues);
               <Col xs={'auto'}>
                 <FontAwesomeIcon icon={State === "NotOk" || State === 'NotOkEdited' ? faExclamation : faCircleCheck} size="4x" style={{ color: State === "NotOk" || State === 'NotOkEdited' ? "#ff8a8a" : "#95d795" }} className={State === "NotOk" || State === 'NotOkEdited' ? "ms-4 me-4" : ""} />
               </Col>
-              <Col xs={'auto'} className="text-secondary lh-sm">Name: #{ProcessingStepNumber}<br />Date: {formatTimestamp(Timestamp)}<br />Status: {State}</Col>
+              <Col xs={'auto'} className="text-secondary lh-sm">Name: #{ProcessingStepNumber} {PartArticleNumber}<br />Date: {formatTimestamp(Timestamp)}<br />Status: {State}</Col>
             </Row>
           </Accordion.Header>
           <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>

@@ -4,14 +4,111 @@ var nodeMailer = require('nodemailer');
 var app = express();
 let cors = require('cors');
 app.use(cors());
-const { info } = require('console');
 const axios = require('axios');
 var http = require('http');
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
+const fs = require('fs');
 
 
-    //Tässä haetaan kaikki hitsit
+// SÄHKÖPOSTI
+let notOkCount = 0;
+let sentEmails = [];
+
+//Mailserverin luonti
+const transporter = nodeMailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: '587',
+    secure: false,
+    tls: {
+        ciphers: "SSLv3",
+        rejectUnauthorized: false,
+        },
+        //Autentikointiin tarvittavat tiedot .env tiedostossa. 
+    auth:{
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+app.post('/send-email', async (req, res) => { //POST metodi, sÃ¤hkÃ¶postin lÃ¤hettÃ¤miselle
+  const notOkWelds = req.body.notOkWelds;
+  const data = JSON.parse(fs.readFileSync('../src/components/content/emails.json')); //alustetaan recipients lukemalla json tiedosto.
+  const recipients = data.emails;
+
+  const emailPromises = [];
+  const Mailoptions = {//emailin alustus
+    from: 'WeldMailer123@gmail.com',
+    subject: 'NotOk welds',
+    html: `
+    <h1>There are ${notOkWelds.length} welds with NotOk status:</h1>
+    <ul>
+      ${notOkWelds.map(weld => `
+        <li>
+          <p><strong>Weld Id:</strong> ${weld.id}</p>
+          <p><strong>Part Article Number:</strong> ${weld.particle}</p>
+          <p><strong>Timestamp:</strong> ${weld.time}</p>
+        </li>
+        <hr>
+      `).join('')}
+    </ul>
+  `
+    //text: `There are ${notOkWelds.length} welds with NotOk status:\n\n`
+  };
+
+  c
+  
+  notOkWelds.forEach(weld => {
+    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//kÃ¤ydÃ¤Ã¤n getistÃ¤ saadut notok hitsaukset lÃ¤pi
+  });
+  
+ /* const filteredRecipients = {};
+  for (const [name, email] of Object.entries(recipients)) {
+    if (!sentEmails.some(emailInfo => emailInfo.email === email && emailInfo.weldIds.length === notOkWelds.length)) {
+      filteredRecipients[name] = email;
+    }
+  }*/ 
+  for (const [email] of Object.entries(recipients)) {
+    Mailoptions.to = email;
+    console.log(`Sending email to: (${email})`);
+    emailPromises.push(
+      transporter.sendMail(Mailoptions)
+        .then(info => console.log(`Message sent: (${email}): ${info.response}`))
+        .catch(error => console.error(error))
+    );
+  }
+  if (emailPromises.length > 0) {
+    // Add sent email info to sentEmails array
+    const sentEmailInfo = {
+      email: recipients,
+      weldIds: notOkWelds.map(w => w.id)
+    };
+    sentEmails.push(sentEmailInfo);
+  }
+  Promise.all(emailPromises)
+    .then(() => {
+      console.log('All emails sent');
+      res.send('Emails sent successfully');
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(500).send('Error sending emails');
+    });
+});
+
+setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃ¤lein. 
+  fetch('http://localhost:4000/welds')
+    .then(response => response.json())
+    .then(data => {
+      // Do something with the data
+    })
+    .catch(error => console.error(error));
+}, 36000000);// Tunnin vÃ¤lein
+
+//////////////////////////////
+//Tässä haetaan kaikki hitsit
+//////////////////////////////
+
     app.get('/welds', async (req, res) => {
       const url = 'http://weldcube.ky.local/api/v4/Welds';
       const headers = {
@@ -156,8 +253,6 @@ app.use(cors({
   methods: ["GET", "POST", "PUT"],
   credentials: true
 }))
-
-const fs = require('fs');
 
 // Route handler for modifying emails.json file
 app.put('/emails', (req, res) => {
