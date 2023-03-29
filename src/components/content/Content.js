@@ -32,6 +32,7 @@ function Content({ toggle, isOpen }) {
   const [currentMin, setCurrentMin] = useState(0);
 
   const [activeKey, setActiveKey] = useState(null);
+  const [explanation, setExplanation] = useState('');
 
 
   // Modal
@@ -160,6 +161,17 @@ function Content({ toggle, isOpen }) {
     setActiveKey(eventKey === activeKey ? null : eventKey);
   };
 
+  const handleExplanationChange = (event) => {
+    setExplanation(event.target.value);
+  };
+
+  const handleSubmit = () => {
+    const user = 'admin';
+    axios.post(`http://localhost:4000/api/v4/Welds/${weldID}/ChangeState?explanation=${explanation}&user=${user}`)
+    hideModal();
+  };
+
+
   const stats = weldDetailToShow.WeldData?.Stats?.map((stat) => (
     <tr key={stat.Name}>
       <td>{stat.Name}</td>
@@ -203,7 +215,7 @@ console.log(actualValues);
           <Accordion.Header>
             <Row className='align-items-center w-100'>
               <Col xs={'auto'}>
-                <FontAwesomeIcon icon={State === "NotOk" ? faExclamation : faCircleCheck} size="4x" style={{ color: State === "NotOk" ? "#ff8a8a" : "#95d795" }} className={State === "NotOk" ? "ms-4 me-4" : ""} />
+                <FontAwesomeIcon icon={State === "NotOk" || State === 'NotOkEdited' ? faExclamation : faCircleCheck} size="4x" style={{ color: State === "NotOk" || State === 'NotOkEdited' ? "#ff8a8a" : "#95d795" }} className={State === "NotOk" || State === 'NotOkEdited' ? "ms-4 me-4" : ""} />
               </Col>
               <Col xs={'auto'} className="text-secondary lh-sm">Name: #{ProcessingStepNumber}<br />Date: {formatTimestamp(Timestamp)}<br />Status: {State}</Col>
             </Row>
@@ -419,25 +431,39 @@ console.log(actualValues);
         </Row>
       </>}
       <Modal show={show} onHide={hideModal}>
-        <Modal.Header closeButton>
-          <Modal.Title className="text-secondary">#Product</Modal.Title>
-        </Modal.Header>
-        <Modal.Body><Form>
-          <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+      <Modal.Header closeButton>
+        <Modal.Title className="text-secondary">#Product</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Form.Group className="mb-3" controlId="formExplantion">
             <Form.Label className="text-secondary">Are you sure you want to update #product state from OK to Not Ok?</Form.Label>
-            <Form.Control style={{ border: "1px solid #ddd" }} type="text" placeholder="Name" autoFocus />
+            <Form.Control
+              style={{ border: "1px solid #ddd" }}
+              type="text"
+              placeholder="admin"
+              autoFocus
+              disabled
+            />
+            <Form.Control
+              style={{ border: "1px solid #ddd" }}
+              type="text"
+              autoFocus
+              value={explanation}
+              onChange={handleExplanationChange}
+            />
           </Form.Group>
-
-        </Form></Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={hideModal}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={hideModal}>
-            Update
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={hideModal}>
+          Close
+        </Button>
+        <Button variant="primary" onClick={handleSubmit}>
+          Update
+        </Button>
+      </Modal.Footer>
+    </Modal>
 
     </Container>
   );
