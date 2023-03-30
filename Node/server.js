@@ -162,28 +162,28 @@ const recipients = {
 
   // Lasketaan hitsauksen paikka (DEPRECATED)
 
-  // function getWeldPosition(weldId) {
-  //   const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}`;
-  //   const headers = {
-  //     'api_key': process.env.MY_API_KEY,
-  //     'Accept': 'application/json'
-  //   };
-  //   return fetch(url, { headers })
-  //     .then(response => {
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! status: ${response.status}`);
-  //       }
-  //       return response.json(response.data);
-  //     })
-  //     .then(data => {
-  //       const weldingSpeed = data.WeldData.Stats.find(stat => stat.Name === "Welding speed").Mean / 60; // convert cm/min to cm/sec
-  //       console.log("Welding Speed: " + weldingSpeed + " cm/sec (" + weldingSpeed * 60 + " cm/min)");
-  //       const duration = data.Duration;
-  //       console.log("Weld Duration: " + duration + " s");
-  //       const position = weldingSpeed * duration;
-  //       return position;
-  //     });
-  // }
+  function getWeldPosition(weldId) {
+    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}`;
+    const headers = {
+      'api_key': process.env.MY_API_KEY,
+      'Accept': 'application/json'
+    };
+    return fetch(url, { headers })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(response.data);
+      })
+      .then(data => {
+        const weldingSpeed = data.WeldData.Stats.find(stat => stat.Name === "Welding speed").Mean / 60; // convert cm/min to cm/sec
+        console.log("Welding Speed: " + weldingSpeed + " cm/sec (" + weldingSpeed * 60 + " cm/min)");
+        const duration = data.Duration;
+        console.log("Weld Duration: " + duration + " s");
+        const position = weldingSpeed * duration;
+        return position;
+      });
+  }
 
   /* WeldID: 
   f50d146d-9aac-4861-b03e-e3281923f861 
@@ -193,13 +193,136 @@ const recipients = {
   7b514c01-8a19-433b-81e1-5840c116f650
   2ac2d828-66dd-418f-8368-17bc66319bad (Diva_TT)*/
 
-  // getWeldPosition("2ac2d828-66dd-418f-8368-17bc66319bad")
-  // .then(position => {
-  //   console.log(`The position of the weld is ${position} cm.`);
-  // })
-  // .catch(error => {
-  //   console.error(`Error retrieving weld position: ${error}`);
-  // });
+  getWeldPosition("2ac2d828-66dd-418f-8368-17bc66319bad")
+  .then(position => {
+    console.log(`The position of the weld is ${position} cm.`);
+  })
+  .catch(error => {
+    console.error(`Error retrieving weld position: ${error}`);
+  });
+
+  //actual value haku tapahtuu täällä
+
+  app.get('/api/v4/Welds/:weldId/ActualValues', async (req, res) => {
+    const weldId = req.params.weldId;
+
+    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
+  
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          'api_key': process.env.MY_API_KEY,
+          'Accept': 'application/json',
+        },
+      });
+  
+      res.json(response.data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
+    
+
+  //section tiedot
+
+  app.get('/api/v4/Welds/:weldId/Sections/:sectionNumber', async (req, res) => {
+    const weldId = req.params.weldId;
+    const sectionNumber = req.params.sectionNumber;
+  
+    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/Sections/${sectionNumber}`;
+  
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          'api_key': process.env.MY_API_KEY,
+          'Accept': 'application/json',
+        },
+      });
+  
+      res.json(response.data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
+
+    // Calculate the position of the weld at the time it exceeded the limit value
+
+    function calculatePosition(actualValues, qMasterValues) {
+      for (let i = 0; i < actualValues.length; i++) {
+        const timestamp = actualValues[i].TimeStamp;
+        const values = actualValues[i].Values;
+    
+        for (let j = 0; j < values.length; j++) {
+          const name = values[j].Name;
+          const max = values[j].Max;
+          const qMasterValue = qMasterValues.find(q => q.ViolationType === name);
+    
+          if (qMasterValue && max > qMasterValue.CommandValue) {
+            console.log("Lasketaan: " + {
+              position: (timestamp - actualValues[0].TimeStamp) / 1000,
+              limitType: name,
+              limitValue: qMasterValue.CommandValue
+            });
+            return {
+              position: (timestamp - actualValues[0].TimeStamp) / 1000,
+              limitType: name,
+              limitValue: qMasterValue.CommandValue
+            };
+          }
+        }
+      }
+    
+      return null;
+    }
+  
+    app.get('/api/calculatePosition/:weldID', async (req, res) => {
+      const { weldID } = req.params;
+    
+      try {
+        const actualValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`, {
+          headers: {
+            'api_key': process.env.MY_API_KEY,
+            'Accept': 'application/json',
+          },
+        });
+        const actualValuesData = actualValuesResponse.data.ActualValues;
+        const qMasterValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${1}`, {
+          headers: {
+            'api_key': process.env.MY_API_KEY,
+            'Accept': 'application/json',
+          },
+        });
+        const qMasterValuesData = qMasterValuesResponse.data.QMaster.QMasterLimitValuesList;
+    
+        const actualValuesWithQMaster = {
+          Values: actualValuesData,
+          QMasterLimitValuesList: qMasterValuesData
+        };
+    
+        const position = calculatePosition(actualValuesResponse.data, qMasterValuesResponse.data);
+        console.log("position: " + position);
+        res.json({ position });
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    });
+    
+    
+  
+    function getPosition(weldID) {
+      console.log("getPosition: ");
+      fetch(`http://localhost:4000/api/calculatePosition/${weldID}`)
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error(error));
+    }
+    
+  
+    getPosition("2ac2d828-66dd-418f-8368-17bc66319bad");
+
 
   //Tässä testataan POST
 
@@ -257,120 +380,9 @@ const recipients = {
         res.status(500).send(error);
       }
     });
+  
+  
 
-    //actual value haku tapahtuu täällä
-
-  app.get('/api/v4/Welds/:weldId/ActualValues', async (req, res) => {
-    const weldId = req.params.weldId;
-
-    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
-  
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          'api_key': process.env.MY_API_KEY,
-          'Accept': 'application/json',
-        },
-      });
-  
-      res.json(response.data);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send(error);
-    }
-  });
-    
-
-  //section tiedot
-
-  app.get('/api/v4/Welds/:weldId/Sections/:sectionNumber', async (req, res) => {
-    const weldId = req.params.weldId;
-    const sectionNumber = req.params.sectionNumber;
-  
-    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/Sections/${sectionNumber}`;
-  
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          'api_key': process.env.MY_API_KEY,
-          'Accept': 'application/json',
-        },
-      });
-  
-      res.json(response.data);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send(error);
-    }
-  });
-
-  // Calculate the position of the weld at the time it exceeded the limit value
-
-  function calculatePosition(actualValues, qMasterValues) {
-    for (let i = 0; i < actualValues.length; i++) {
-      const timestamp = actualValues[i].TimeStamp;
-      const values = actualValues[i].Values;
-  
-      for (let j = 0; j < values.length; j++) {
-        const name = values[j].Name;
-        const max = values[j].Max;
-        const qMasterValue = qMasterValues.find(q => q.ViolationType === name);
-  
-        if (qMasterValue && max > qMasterValue.CommandValue) {
-          return {
-            position: (timestamp - actualValues[0].TimeStamp) / 1000,
-            limitType: name,
-            limitValue: qMasterValue.CommandValue
-          };
-        }
-      }
-    }
-  
-    return null;
-  }
-
-  app.get('/api/calculatePosition/:weldID', (req, res) => {
-    const { weldID } = req.params;
-  
-    axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`)
-      .then(response => {
-        const actualValuesData = response.data.ActualValues;
-        console.log(actualValuesData);
-  
-        axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${1}`)
-          .then(response => {
-            const qMasterValuesData = response.data.QMaster.QMasterLimitValuesList;
-            console.log(qMasterValuesData);
-  
-            const actualValuesWithQMaster = {
-              Values: actualValuesData,
-              QMasterLimitValuesList: qMasterValuesData
-            };
-  
-            const position = calculatePosition(actualValuesWithQMaster);
-            console.log(position);
-  
-            res.json({ position });
-          })
-          .catch(error => {
-            console.log(error);
-            res.status(500).json({ error: 'Internal server error' });
-          });
-      })
-      .catch(error => {
-        console.log(error);
-        res.status(500).json({ error: 'Internal server error' });
-      });
-  });
-
-  function getPosition(weldID) {
-    fetch(`/api/calculatePosition/${weldID}`)
-      .then(response => response.json())
-      .then(data => console.log(data))
-      .catch(error => console.error(error));
-  }
-
-  getPosition("2ac2d828-66dd-418f-8368-17bc66319bad");
 
 
   
@@ -379,7 +391,7 @@ const recipients = {
   });
 
   module.exports = { calculatePosition };
-
+  
 });
 
 
