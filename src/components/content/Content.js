@@ -7,7 +7,7 @@ import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
 import { faCheck, faExclamation } from "@fortawesome/free-solid-svg-icons";
 
 import axios from 'axios';
-import Pagination from "../pagination";
+import Pagination from "./pagination";
 
 function Content({ toggle, isOpen }) {
 
