@@ -272,51 +272,51 @@ setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃ¤lein.
     return null;
   }
 
-  app.get('/api/calculatePosition/:weldID', async (req, res) => {
-    const { weldID } = req.params;
+  // app.get('/api/calculatePosition/:weldID', async (req, res) => {
+  //   const { weldID } = req.params;
   
-    try {
-      const actualValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`, {
-        headers: {
-          'api_key': process.env.MY_API_KEY,
-          'Accept': 'application/json',
-        },
-      });
-      const actualValuesData = actualValuesResponse.data.ActualValues;
-      const qMasterValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${1}`, {
-        headers: {
-          'api_key': process.env.MY_API_KEY,
-          'Accept': 'application/json',
-        },
-      });
-      const qMasterValuesData = qMasterValuesResponse.data.QMaster.QMasterLimitValuesList;
+  //   try {
+  //     const actualValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`, {
+  //       headers: {
+  //         'api_key': process.env.MY_API_KEY,
+  //         'Accept': 'application/json',
+  //       },
+  //     });
+  //     const actualValuesData = actualValuesResponse.data.ActualValues;
+  //     const qMasterValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${1}`, {
+  //       headers: {
+  //         'api_key': process.env.MY_API_KEY,
+  //         'Accept': 'application/json',
+  //       },
+  //     });
+  //     const qMasterValuesData = qMasterValuesResponse.data.QMaster.QMasterLimitValuesList;
   
-      const actualValuesWithQMaster = {
-        Values: actualValuesData,
-        QMasterLimitValuesList: qMasterValuesData
-      };
+  //     const actualValuesWithQMaster = {
+  //       Values: actualValuesData,
+  //       QMasterLimitValuesList: qMasterValuesData
+  //     };
   
-      const position = calculatePosition(actualValuesResponse.data, qMasterValuesResponse.data);
-      console.log("position: " + position);
-      res.json({ position });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+  //     const position = calculatePosition(actualValuesResponse.data, qMasterValuesResponse.data);
+  //     console.log("position: " + position);
+  //     res.json({ position });
+  //   } catch (error) {
+  //     console.log(error);
+  //     res.status(500).json({ error: 'Internal server error' });
+  //   }
+  // });
   
-  
-
-  function getPosition(weldID) {
-    console.log("getPosition: ");
-    fetch(`http://localhost:4000/api/calculatePosition/${weldID}`)
-      .then(response => response.json())
-      .then(data => console.log(data))
-      .catch(error => console.error(error));
-  }
   
 
-  getPosition("2ac2d828-66dd-418f-8368-17bc66319bad");
+  // function getPosition(weldID) {
+  //   console.log("getPosition: ");
+  //   fetch(`http://localhost:4000/api/calculatePosition/${weldID}`)
+  //     .then(response => response.json())
+  //     .then(data => console.log(data))
+  //     .catch(error => console.error(error));
+  // }
+  
+
+  // getPosition("2ac2d828-66dd-418f-8368-17bc66319bad");
   
 /////////////////
 //  EMAIL JSON //
@@ -371,3 +371,9 @@ app.put('/emails', (req, res) => {
     });
   });
 });
+
+
+
+
+
+app.listen(4000, () => console.log('Server running on port 4000'));
