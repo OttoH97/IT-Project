@@ -4,13 +4,11 @@ var nodeMailer = require('nodemailer');
 var app = express();
 let cors = require('cors');
 app.use(cors());
-const fs = require('fs');
+const axios = require('axios');
 var http = require('http');
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
-
-
-
+const fs = require('fs');
 
 
 let notOkCount = 0;
@@ -100,10 +98,85 @@ app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶
     });
 });
 
+setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃ¤lein. 
+  fetch('http://localhost:4000/allwelds')
+    .then(response => response.json())
+    .then(data => {
+      // Do something with the data
+    })
+    .catch(error => console.error(error));
+}, 60000);// Tunnin vÃ¤lein
 
-  
+//////////////////////////////
+//Tässä haetaan kaikki hitsit
+//////////////////////////////
 
 app.get('/welds', async (req, res) => {
+  const url = 'http://weldcube.ky.local/api/v4/Welds';
+  const headers = {
+    'api_key': process.env.MY_API_KEY,
+    'Accept': 'application/json'
+  };
+  const pageSize = Number(req.query.pageSize) || 10; // Default page size is 10
+  const pageNumber = Number(req.query.pageNumber) || 1; // Default page number is 1
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
+  const filter = req.query.filter;
+
+  try {
+    const response = await fetch(url, { headers });
+    const data = await response.json();
+
+    let filteredWelds = data.WeldInfos;
+
+    if (filter && filter !== 'all') {
+      const allowedStates = filter === 'Ok' || filter === 'OkEdited' ? ['Ok', 'OkEdited'] : ['NotOk', 'NotOkEdited'];
+      filteredWelds = filteredWelds.filter((weld) => allowedStates.includes(weld.State));
+    }
+
+    const welds = filteredWelds.slice(startIndex, endIndex);
+
+    const weldsDetailsPromises = welds.map((weld) =>
+      fetch(`http://weldcube.ky.local/api/v4/Welds/${weld.Id}`, { headers })
+        .then((response) => response.json())
+        .then((detailsData) => {
+          return {
+            ...weld,
+            id: weld.Id,
+            state: weld.State,
+            timestamp: weld.Timestamp,
+            duration: detailsData.Duration,
+            errors: detailsData.Errors,
+            welddata: detailsData.WeldData
+          };
+        })
+    );
+
+    const weldsWithDetails = await Promise.all(weldsDetailsPromises);
+    const totalCount = filteredWelds.length;
+    const totalOk = filteredWelds.filter((weld) => weld.State === 'Ok' || weld.State === 'OkEdited').length;
+    const totalNotOk = filteredWelds.filter((weld) => weld.State === 'NotOk' || weld.State === 'NotOkEdited').length;
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    res.send({
+      welds: weldsWithDetails,
+      pageNumber,
+      pageSize,
+      totalPages,
+      totalCount,
+      totalOk,
+      totalNotOk
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+//////////////////////////////
+//Tässä haetaan kaikki hitsit sähköpostin lähettämistä varten
+//////////////////////////////
+
+app.get('/allwelds', async (req, res) => {
   const url = 'http://weldcube.ky.local/api/v4/welds';
   const headers = {
     'api_key': process.env.MY_API_KEY,
@@ -172,100 +245,107 @@ app.get('/welds', async (req, res) => {
   }
   
 })
-setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃƒÂ¤lein. 
-  fetch('http://localhost:4000/welds')
-    .then(response => response.json())
-    .then(data => {
-      // Do something with the data
-    })
-    .catch(error => console.error(error));
-}, 36000000);// Tunnin vÃƒÂ¤lein
+  
+  
+  //Tässä haetaan yksittäinen hitsin lisätiedot klikkauksella
+    app.get('/welds/:weldId', async (req, res) => {
+      const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}`;
+      const headers = {
+        'api_key': process.env.MY_API_KEY,
+        'Accept': 'application/json',
+        'Content-type' : 'application/json'
+      };
+    
+      try {
+        const response = await fetch(url, { headers });
+        const data = await response.json();
+        res.send(data);
+      } catch (error) {
+        console.error(error.response);
+        res.status(500).send(error);
+      }
+    });
+  
+    //change state
+    app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
+      const explanation = req.query.explanation;
+      const user = req.query.user;
+      const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState?explanation=${explanation}&user=${user}`;
+      console.log('url:', url);
+      const headers = {
+        'api_key': process.env.MY_API_KEY,
+        'Accept': 'application/json',
+        'Content-type' : 'application/json'
+      };
+  
+      console.log('params:', explanation);
+      try {
+        const response = await axios.post(url, null, { params: null, headers });
+        console.log('response:', response.data);
+        res.send(response.data);
+      } catch (error) {
+        console.error(error);
+        console.log(error.response.data)
+        console.log(error.response.status)
+        console.log(error.response.headers)
+        res.status(500).send(error);
+      }
+    });
+  
+    // part haku tapahtuu täällä
+    app.get('/api/v4/Parts/:partItemNumber/:partSerialNumber', async (req, res) => {
+      const partItemNumber = req.params.partItemNumber;
+      const partSerialNumber = req.params.partSerialNumber;
+    
+      const apiKey = req.get('api_key');
+      const acceptHeader = req.get('Accept');
+      const url = `http://weldcube.ky.local/api/v4/Parts/${partItemNumber}/${partSerialNumber}`;
+    
+      try {
+        const response = await axios.get(url, {
+          headers: {
+            'api_key': process.env.MY_API_KEY,
+            'Accept': 'application/json',
+          },
+        });
+    
+        res.json(response.data);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send(error);
+      }
+    });
 
-  //tÃƒÂ¤ÃƒÂ¤llÃƒÂ¤ haetaan yksittÃƒÂ¤inen hitsin lisÃƒÆ’Ã‚Â¤tiedot klikkauksella
-  app.get('/welds/:weldId', async (req, res) => {
-    const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}`;
-    const headers = {
-      'api_key': process.env.MY_API_KEY,
-      'Accept': 'application/json',
-      'Content-type' : 'application/json'
-    };
+    //actual value haku tapahtuu täällä
+
+  app.get('/api/v4/Welds/:weldId/ActualValues', async (req, res) => {
+    const weldId = req.params.weldId;
+
+    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
   
     try {
-      const response = await fetch(url, { headers });
-      const data = await response.json();
-      res.send(data);
-    } catch (error) {
-      console.error(error.response);
-      res.status(500).send(error);
-    }
-  });
-
-  //tÃƒÂ¤ÃƒÂ¤llÃƒÂ¤ testataan POST
-
-/*   const apiUrl = 'http://weldcube.ky.local/api/v4/Welds/{WeldID}/ChangeState'; */
-
-  // app.post('/welds/change-state', (req, res) => {
-  //   //const { WeldId, explanation, user } = req.body; //  ottaa frontin puolelta responsen. EI kÃƒÂ¤ytettÃƒÂ¤vissÃƒÂ¤ ennen kuin front valmis.
+      const response = await axios.get(url, {
+        headers: {
+          'api_key': process.env.MY_API_KEY,
+          'Accept': 'application/json',
+        },
+      });
   
-  //   const data = {
-  //     WeldId,
-  //     explanation : "testi",
-  //     user : R12_K2023
-  //   };
-  
-  //   const headers = {
-  //     'Content-Type': 'application/json',
-  //     'api_key': process.env.MY_API_KEY
-  //   };
-  
-  //   axios.post(apiUrl, data, { headers })
-  //   .then(response => {
-  //     res.json(response.data);
-  //   })
-  //   .catch(error => {
-  //     console.error(error);
-  //     res.status(500).json({ message: 'Internal server error' });
-  //   });
-  // });
-
-  //change state
-  app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
-    const explanation = req.params.explanation;
-    const user = req.params.user;
-    const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState?explanation=${explanation}&user=${user}`;
-    console.log('url:', url);
-    const headers = {
-      'api_key': process.env.MY_API_KEY,
-      'Accept': 'application/json',
-      'Content-type' : 'application/json'
-    };
-
-    console.log('params:', explanation);
-    try {
-      const response = await axios.post(url, null, { params: null, headers });
-      console.log('response:', response.data);
-      res.send(response.data);
+      res.json(response.data);
     } catch (error) {
       console.error(error);
-      console.log(error.response.data)
-      console.log(error.response.status)
-      console.log(error.response.headers)
       res.status(500).send(error);
     }
   });
+    
 
-  // part haku tapahtuu tÃƒÂ¤ssÃƒÂ¤
+  //section tiedot
 
-  app.get('/api/v4/Parts/:partItemNumber/:partSerialNumber', async (req, res) => {
-    const partItemNumber = req.params.partItemNumber;
-    const partSerialNumber = req.params.partSerialNumber;
+  app.get('/api/v4/Welds/:weldId/Sections/:sectionNumber', async (req, res) => {
+    const weldId = req.params.weldId;
+    const sectionNumber = req.params.sectionNumber;
   
-    const apiKey = req.get('api_key');
-    const acceptHeader = req.get('Accept');
-  
-
-  
-    const url = `http://weldcube.ky.local/api/v4/Parts/${partItemNumber}/${partSerialNumber}`;
+    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/Sections/${sectionNumber}`;
   
     try {
       const response = await axios.get(url, {
@@ -282,5 +362,62 @@ setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃƒÂ¤lein.
     }
   });
   
-  
+/////////////////
+//  EMAIL JSON //
+/////////////////
+//emails.json käsittelyyn
+
+app.use(express.json());
+app.use(cors({
+  origin: ["http://localhost:3000"],
+  methods: ["GET", "POST", "PUT"],
+  credentials: true
+}))
+
+// Route handler for modifying emails.json file
+app.put('/emails', (req, res) => {
+  const { emails } = req.body;
+
+  // Check if emails property exists in the request body
+  if (!emails) {
+    return res.status(400).json({ message: 'Emails property missing from request body.' });
+  }
+
+  // Check if emails is an array
+  if (!Array.isArray(emails)) {
+    return res.status(400).json({ message: 'Emails property must be an array.' });
+  }
+
+  // Read the emails.json file
+  fs.readFile('../src/components/content/emails.json', 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: 'Internal server error.' });
+    }
+
+    // Parse the JSON data
+    const jsonData = JSON.parse(data);
+
+    // Update the emails property
+    jsonData.emails = emails;
+
+    console.log(emails);
+
+    // Write the updated data back to the emails.json file
+    fs.writeFile('../src/components/content/emails.json', JSON.stringify(jsonData), 'utf8', (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal server error.' });
+      }
+
+      // Send a response back to the client
+      res.json({ message: 'Emails updated successfully.' });
+    });
+  });
+});
+
+
+
+
+
   app.listen(4000, () => console.log('Server running on port 4000'));
