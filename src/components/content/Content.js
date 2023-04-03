@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import classNames from "classnames";
-import { Card, Col, Container, Row, Accordion, Button, Modal, Form, Table, Dropdown, DropdownButton, InputGroup } from "react-bootstrap";
+import { Card, Col, Container, Row, Accordion, Button, Modal, Form, Table, Badge, DropdownButton, InputGroup } from "react-bootstrap";
 import NavBar from "./Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
-import { faChevronLeft, faChevronRight, faExclamation } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faChevronLeft, faChevronRight, faExclamation } from "@fortawesome/free-solid-svg-icons";
 
 import ReactPaginate from 'react-paginate';
 import axios from 'axios';
@@ -138,12 +138,18 @@ function Content({ toggle, isOpen }) {
     </tr>
   ));
 
-  const errors = weldDetailToShow.Errors?.map((error, index) => (
-    <tr key={index}>
-      <td>{error.ErrorCode}</td>
-      <td>{error.ErrorCodeName}</td>
+  const errors = weldDetailToShow.Errors?.length ? (
+    weldDetailToShow.Errors.map((error, index) => (
+      <tr key={index}>
+        <td>{error.ErrorCode}</td>
+        <td>{error.ErrorCodeName}</td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="2">No errors found</td>
     </tr>
-  ));
+  );
 
   const limitViolations = welds.details?.WeldData?.LimitViolations?.map((violation, index) => (
     <tr key={index}>
@@ -162,31 +168,80 @@ function Content({ toggle, isOpen }) {
 
   let rows = welds.map((weld, index) => {
     return (
-      <Accordion className="mt-3" onClick={() => { handleToggle(weld.Id) }} activeKey={activeKey} onSelect={handleAccordionClick}>
+      <Accordion className="mt-3" onClick={() => { handleToggle(weld.Id);setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
         <Accordion.Item eventKey={index} className="border-0 shadow-sm">
           <Accordion.Header>
             <Row className='align-items-center w-100'>
-              <Col xs={'auto'} onClick={showModal}>
+              <Col xs={'auto'} onClick={showModal} style={{zIndex:"2"}}>
                 <FontAwesomeIcon icon={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? faExclamation : faCircleCheck} size="4x" style={{ color: weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "#ff8a8a" : "#95d795" }} className={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "ms-4 me-4" : ""} />
               </Col>
               <Col xs={'auto'} className="text-secondary lh-sm">Name: #{weld.ProcessingStepNumber} {weld.PartArticleNumber}<br />Date: {formatTimestamp(weld.Timestamp)}<br />Status: {weld.State}</Col>
             </Row>
-            <span>{weld.details?.WeldData?.LimitViolations?.map((violation, index) => (
+            <div className="d-block">
+            <Badge>{weld.Details?.LimitViolations?.map((violation, index) => (
               <tr key={index}>
                 <td>{violation.ValueType}</td>
                 <td>{violation.ViolationType}</td>
               </tr>
-            ))}</span>
-            <span>{weld.details?.Errors?.map((error, index) => (
-              <tr key={index}>
-                <td>{error.ErrorCode}</td>
-                <td>{error.ErrorCodeName}</td>
-              </tr>
-            ))}</span>
+            ))}</Badge>
+            {weld.Errors && weld.Errors.length > 0 ? (
+  <span>
+    {weld.Errors.map((error, index) => (
+      <tr key={index}>
+        <td>{error.ErrorCode}</td>
+        <td>{error.ErrorCodeName}</td>
+      </tr>
+    ))}
+  </span>
+) : (
+  <Badge><FontAwesomeIcon icon={faCheck}/> No errors found</Badge>
+)}</div>
           </Accordion.Header>
           <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
+          <Row className='gy-3'>
+  {weldDetailToShow?.Details?.SingleStats?.map((stat, index) => {
+    if (stat.Name === "Wire consumption (length)" || stat.Name === "Wire consumption (weight)" || stat.Name === "Wire consumption (volume)") {
+      return null; // exclude individual wire consumption stats
+    } else {
+      const name = stat.Name;
+      const value = stat.Value;
+      const unit = stat.Unit;
+
+      // Combine wire consumption stats in one text
+      if (name === "Wire consumption (length)") {
+        return null;
+      } else if (name === "Wire consumption (weight)") {
+        const lengthStat = weldDetailToShow?.Details.SingleStats.find((s) => s.Name === "Wire consumption (length)");
+        const volumeStat = weldDetailToShow?.Details.SingleStats.find((s) => s.Name === "Wire consumption (volume)");
+        if (!lengthStat || !volumeStat) {
+          return null; // missing stats, skip
+        }
+        const wireText = `${name.split(" ")[2]} (${lengthStat.Value}m, ${value}${unit}, ${volumeStat.Value}mm³)`;
+        return (
+          <Col md={3} key={index}>
+            <div className="rounded bg-light p-3 d-block" style={{border:"1px solid #dee2e6"}}>
+              <div>Wire consumption</div>
+              <div>{wireText}</div>
+            </div>
+          </Col>
+        );
+      } else {
+        return (
+          <Col md={3} key={index}>
+            <div className="rounded bg-light p-3 d-block" style={{border:"1px solid #dee2e6"}}>
+              <div>{name}</div>
+              <div>{`${value} ${unit}`}</div>
+            </div>
+          </Col>
+        );
+      }
+    }
+  })}
+</Row>
             <Row>
-              <div>
+              </Row>
+              <Row>
+              {/*<div>
                 <table>
                   <thead>
                     <tr>
@@ -277,7 +332,7 @@ function Content({ toggle, isOpen }) {
                   </tbody>
                 </Table>
 
-                {/* <table>
+                 <table>
         <thead>
           <tr>
             <th>Timestamp</th>
@@ -324,8 +379,8 @@ function Content({ toggle, isOpen }) {
         </tbody>
         {currentMax} {currentMin}
         
-      </table> */}
-              </div>
+      </table> 
+              </div>*/}
             </Row>
             <Row className="mt-3 d-flex justify-content-between">
               <Col>Text</Col>
@@ -375,14 +430,13 @@ function Content({ toggle, isOpen }) {
       </Row>
       {loading ? <span className="loader"></span> : <>
         {filter === 'all' ? <h6 className="mt-3 text-secondary">Showing All Recent Welds</h6> : <h6 className="mt-3 text-secondary">Showing Welds Status "{filter}"</h6>}
-        {rows}
+        {rows}</>}
         <Row className="justify-content-center mt-3">
           <Col xs="auto">
-            {totalPages} {pageNumber}
             <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={handlePageChange} />
           </Col>
         </Row>
-      </>}
+      
       <Modal show={show} onHide={hideModal}>
         <Modal.Header closeButton>
           <Modal.Title className="text-secondary">#Product</Modal.Title>

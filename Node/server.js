@@ -141,13 +141,16 @@ app.get('/welds', async (req, res) => {
         .then((response) => response.json())
         .then((detailsData) => {
           return {
-            ...weld,
-            id: weld.Id,
-            state: weld.State,
-            timestamp: weld.Timestamp,
-            duration: detailsData.Duration,
-            errors: detailsData.Errors,
-            welddata: detailsData.WeldData
+            Id: weld.Id,
+            State: weld.State,
+            Timestamp: weld.Timestamp,
+            Duration: detailsData.Duration,
+            PartSerialNumber: weld.PartSerialNumber,
+            PartArticleNumber: weld.PartArticleNumber,
+            ProcessingStepNumber: weld.ProcessingStepNumber,
+            Errors: detailsData.Errors,
+            LimitViolations: detailsData.LimitViolations,
+            Details: detailsData.WeldData
           };
         })
     );
