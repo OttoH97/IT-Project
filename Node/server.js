@@ -11,7 +11,6 @@ app.use(express.urlencoded({extended:false}));
 const fs = require('fs');
 
 
-// SÄHKÖPOSTI
 let notOkCount = 0;
 let sentEmails = [];
 
@@ -30,36 +29,39 @@ const transporter = nodeMailer.createTransport({
         pass: process.env.EMAIL_PASS
     }
 });
-
-app.post('/send-email', async (req, res) => { //POST metodi, sÃ¤hkÃ¶postin lÃ¤hettÃ¤miselle
+app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶postin lÃƒÂ¤hettÃƒÂ¤miselle
   const notOkWelds = req.body.notOkWelds;
-  const data = JSON.parse(fs.readFileSync('../src/components/content/emails.json')); //alustetaan recipients lukemalla json tiedosto.
-  const recipients = data.emails;
+  const recipients = JSON.parse(fs.readFileSync('../src/components/content/emails.json')); //alustetaan recipients lukemalla json tiedosto.
 
   const emailPromises = [];
-  const Mailoptions = {//emailin alustus
+  const Mailoptions = {
     from: 'WeldMailer123@gmail.com',
     subject: 'NotOk welds',
     html: `
-    <h1>There are ${notOkWelds.length} welds with NotOk status:</h1>
-    <ul>
-      ${notOkWelds.map(weld => `
-        <li>
-          <p><strong>Weld Id:</strong> ${weld.id}</p>
-          <p><strong>Part Article Number:</strong> ${weld.particle}</p>
-          <p><strong>Timestamp:</strong> ${weld.time}</p>
-        </li>
-        <hr>
-      `).join('')}
-    </ul>
-  `
-    //text: `There are ${notOkWelds.length} welds with NotOk status:\n\n`
+      <h1>There are ${notOkWelds.length} welds with NotOk status:</h1>
+      <table style="border-collable: collapse; width: 50%; margin: 0 auto;">
+        <thead>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2; font-size: 16px; text-align: left;">Weld Id</th>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2; font-size: 16px; text-align: left;">Part Article Number</th>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2; font-size: 16px; text-align: left;">Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${notOkWelds.map(weld => `
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px;font-size: 14px;">${weld.id}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;font-size: 14px;">${weld.particle}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;font-size: 14px;">${weld.time}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `
   };
 
-  c
-  
   notOkWelds.forEach(weld => {
-    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//kÃ¤ydÃ¤Ã¤n getistÃ¤ saadut notok hitsaukset lÃ¤pi
+    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//kÃƒÂ¤ydÃƒÂ¤ÃƒÂ¤n getistÃƒÂ¤ saadut notok hitsaukset lÃƒÂ¤pi
   });
   
  /* const filteredRecipients = {};
@@ -68,12 +70,12 @@ app.post('/send-email', async (req, res) => { //POST metodi, sÃ¤hkÃ¶postin l
       filteredRecipients[name] = email;
     }
   }*/ 
-  for (const [email] of Object.entries(recipients)) {
+  for (const [name, email] of Object.entries(recipients)) {
     Mailoptions.to = email;
-    console.log(`Sending email to: (${email})`);
+    console.log(`Sending email to: ${name} (${email})`);
     emailPromises.push(
       transporter.sendMail(Mailoptions)
-        .then(info => console.log(`Message sent: (${email}): ${info.response}`))
+        .then(info => console.log(`Message sent: ${name} (${email}): ${info.response}`))
         .catch(error => console.error(error))
     );
   }
