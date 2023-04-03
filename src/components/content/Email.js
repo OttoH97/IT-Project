@@ -64,7 +64,7 @@ function Email({ toggle, isOpen }) {
     toast.success("Email added");
   };
 
-  const handleEdit = (index) => { // Updated 22.3.2023
+  const handleEdit = (index) => {
     const originalEmail = emails[index];
     const updatedEmail = prompt('Enter updated email', originalEmail);
   
@@ -73,7 +73,7 @@ function Email({ toggle, isOpen }) {
     }
   
     if (updatedEmail.trim() === originalEmail) { // check if the email is the same as the original
-      toast.success("Edit successful (no changes made)");
+      toast.success("OK. No Changes made.");
       return;
     }
   
@@ -141,7 +141,7 @@ function Email({ toggle, isOpen }) {
               ))
             ) : (
               <ListGroup.Item as="li" className="p-3">
-                <span className='text-secondary text-center'>Mail list is empty</span>
+                <span className='text-secondary text-center'>No entries in mailing list.</span>
                 </ListGroup.Item>
             )}
           </ListGroup>
