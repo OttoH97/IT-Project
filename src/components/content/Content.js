@@ -1,23 +1,30 @@
 import React, { useState, useEffect } from "react";
 import classNames from "classnames";
-import { Card, Col, Container, Row, Accordion, Button, Modal, Form, Table, Dropdown, DropdownButton,InputGroup } from "react-bootstrap";
+import { Card, Col, Container, Row, Accordion, Button, Modal, Form, Table, Badge, DropdownButton, InputGroup } from "react-bootstrap";
 import NavBar from "./Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
-import { faChevronLeft, faChevronRight, faExclamation } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faChevronLeft, faChevronRight, faExclamation } from "@fortawesome/free-solid-svg-icons";
 
 import ReactPaginate from 'react-paginate';
 import axios from 'axios';
+import Pagination from "../pagination";
 
 function Content({ toggle, isOpen }) {
 
 
   // Welds from weldcube API
   const [welds, setWelds] = useState([]);
-  const [latestWeld, setLatestWeld] = useState('');
-  const [filterState, setFilterState] = useState("All");
 
   const [loading, setLoading] = useState(true);
+  const [pageSize, setPageSize] = useState(10);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [filter, setFilter] = useState('all'); // <-- add filter state
+
+  const [totalCount, setTotaCount] = useState(0);
+  const [totalOk, setTotalOk] = useState(0);
+  const [totalNotOk, setTotalNotOk] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const [partToShow, setPartToShow] = useState([]);
   const [weldID, setWeldID] = useState('')
@@ -34,122 +41,43 @@ function Content({ toggle, isOpen }) {
   const [activeKey, setActiveKey] = useState(null);
   const [explanation, setExplanation] = useState('');
 
-
   // Modal
   const [show, setShow] = useState(false);
   const hideModal = () => setShow(false);
   const showModal = () => setShow(true);
 
+  // Haetaan yleiset statiikat
+  useEffect(() => {
+    axios.get(`http://localhost:4000/welds?pageSize=1`)
+      .then(response => {
+        setTotalOk(response.data.totalCount);
+        setTotalNotOk(response.data.totalNotOk);
+        setTotalOk(response.data.totalOk);
 
-  //Haetaan kaikki weld data API:sta
-  // useEffect(() => {
-  //   axios.get(`http://localhost:4000/welds`)
-  //     .then(response => {
-  //       setWelds(response.data.WeldInfos);
-  //       setLatestWeld(response.data.WeldInfos[0].Id);
-  //       setLoading(false);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }, []);
 
-  //     })
-  //     .catch(error => {
-  //       console.log(error);
-  //       setLoading(false);
-
-  //     });
-  // }, [latestWeld]);
-
-  // useEffect(() => {
-  //   axios.get(`http://localhost:4000/welds/${weldID}`)
-  //     .then(response => {
-  //       setWeldDetailToShow(response.data);
-
-  //     })
-  //     .catch(error => {
-  //       console.log(error);
-  //     });
-  // }, [weldID]);
-
+  // Haetaan kaikki weldit
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
+
       try {
-        const response = await axios.get('http://localhost:4000/welds');
-        const weldsData = response.data.WeldInfos;
-  
-        const weldsDetailsPromises = weldsData.map((weld) =>
-          axios.get(`http://localhost:4000/welds/${weld.Id}`).then((detailsResponse) => {
-            const detailsData = detailsResponse.data;
-            return {
-              ...weld,
-              id: weld.Id,
-              state: weld.State,
-              timestamp: weld.Timestamp,
-              duration: detailsData.Duration,
-              errors: detailsData.Errors,
-              welddata: detailsData.WeldData
-            };
-          })
-        );
-  
-        const weldsWithDetails = await Promise.all(weldsDetailsPromises);
-        setWelds(weldsWithDetails);
+        const response = await axios.get(`http://localhost:4000/welds?pageNumber=${pageNumber}&pageSize=${pageSize}&filter=${filter}`);
+        setWelds(response.data.welds);
+        setTotalPages(response.data.totalPages)
         setLoading(false);
       } catch (error) {
         console.error(error);
         setLoading(false);
       }
     }
-  
+
     fetchData();
-  }, []);
-
-  console.log(welds)
-
-  // useEffect(() => {
-  //   axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`)
-  //     .then(response => {
-  //       setActualValues(response.data.ActualValues);
-
-  //     })
-  //     .catch(error => {
-  //       console.log(error);
-  //     });
-  // }, [weldID]);
-
-  // useEffect(() => {
-  //   axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${1}`)
-  //     .then(response => {
-  //       setQMasterValues(response.data.QMaster.QMasterLimitValuesList);
-
-  //     })
-  //     .catch(error => {
-  //       console.log(error);
-  //     });
-  // }, [weldID]);
-
-
-
-  //   axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`)
-  //     .then(response => {
-  //       const actualValuesData = response.data.ActualValues;
-
-  //       axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${3}`)
-  //         .then(response => {
-  //           const qMasterValuesData = response.data.QMaster.QMasterLimitValuesList;
-
-  //           const actualValuesWithQMaster = {
-  //             Values: actualValuesData,
-  //             QMasterLimitValuesList: qMasterValuesData
-  //           }
-  //           setActualValues(actualValuesWithQMaster);
-  //           setCurrentMax(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue+actualValuesWithQMaster.QMasterLimitValuesList[0].UpperLimitValue)
-  //           setCurrentMin(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue-(actualValuesWithQMaster.QMasterLimitValuesList[0].UpperLimitValue))
-  //         })
-  //         .catch(error => {
-  //           console.log(error);
-  //         });
-  //     })
-  //     .catch(error => {
-  //       console.log(error);
-  // }, [weldID]);
+  }, [pageNumber, pageSize, filter]);
 
   // Haetaan weldin actualvalues
   const handleToggle = (weldId) => {
@@ -162,34 +90,14 @@ function Content({ toggle, isOpen }) {
       });
   };
 
+  // Pagination
+  function handlePageChange(page) {
+    setPageNumber(page);
+  }
 
-  // Filters
-  const handleFilter = (filter) => {
-    setFilterState(filter);
-  };
-
-  const filteredWelds = welds.filter((weld) => {
-    if (filterState === "All") {
-      return true;
-    } else if (filterState === "Ok") {
-      return weld.State === "Ok";
-    } else if (filterState === "Not Ok") {
-      return weld.State === "NotOk";
-    }
-  });
-
-  //Pagination
-  const ITEMS_PER_PAGE = 8;
-  const [currentPage, setCurrentPage] = useState(0);
-
-  const handlePageChange = ({ selected: selectedPage }) => {
-    setCurrentPage(selectedPage);
-  };
-
-  const totalPages = Math.ceil(filteredWelds.length / ITEMS_PER_PAGE);
-  const startIndex = currentPage * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentItems = filteredWelds.slice(startIndex, endIndex);
+  const startIndex = pageNumber * pageSize;
+  const endIndex = startIndex + pageSize;
+  const currentItems = welds.slice(startIndex, endIndex);
 
   // Convert API timestamp to human readable format
   function formatTimestamp(timestamp) {
@@ -230,12 +138,18 @@ function Content({ toggle, isOpen }) {
     </tr>
   ));
 
-  const errors = weldDetailToShow.Errors?.map((error, index) => (
-    <tr key={index}>
-      <td>{error.ErrorCode}</td>
-      <td>{error.ErrorCodeName}</td>
+  const errors = weldDetailToShow.Errors?.length ? (
+    weldDetailToShow.Errors.map((error, index) => (
+      <tr key={index}>
+        <td>{error.ErrorCode}</td>
+        <td>{error.ErrorCodeName}</td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="2">No errors found</td>
     </tr>
-  ));
+  );
 
   const limitViolations = welds.details?.WeldData?.LimitViolations?.map((violation, index) => (
     <tr key={index}>
@@ -252,33 +166,82 @@ function Content({ toggle, isOpen }) {
     </tr>
   ));
 
-  let rows = currentItems.map((weld, index) => {
+  let rows = welds.map((weld, index) => {
     return (
-      <Accordion className="mt-3" onClick={() => { handleToggle(weld.Id) }} activeKey={activeKey} onSelect={handleAccordionClick}>
+      <Accordion className="mt-3" onClick={() => { handleToggle(weld.Id);setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
         <Accordion.Item eventKey={index} className="border-0 shadow-sm">
           <Accordion.Header>
             <Row className='align-items-center w-100'>
-              <Col xs={'auto'} onClick={showModal}>
+              <Col xs={'auto'} onClick={showModal} style={{zIndex:"2"}}>
                 <FontAwesomeIcon icon={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? faExclamation : faCircleCheck} size="4x" style={{ color: weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "#ff8a8a" : "#95d795" }} className={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "ms-4 me-4" : ""} />
               </Col>
               <Col xs={'auto'} className="text-secondary lh-sm">Name: #{weld.ProcessingStepNumber} {weld.PartArticleNumber}<br />Date: {formatTimestamp(weld.Timestamp)}<br />Status: {weld.State}</Col>
             </Row>
-            <span>{weld.details?.WeldData?.LimitViolations?.map((violation, index) => (
-    <tr key={index}>
-      <td>{violation.ValueType}</td>
-      <td>{violation.ViolationType}</td>
-    </tr>
-  ))}</span>
-  <span>{weld.details?.Errors?.map((error, index) => (
-    <tr key={index}>
-    <td>{error.ErrorCode}</td>
-    <td>{error.ErrorCodeName}</td>
-  </tr>
-  ))}</span>
+            <div className="d-block">
+            <Badge>{weld.Details?.LimitViolations?.map((violation, index) => (
+              <tr key={index}>
+                <td>{violation.ValueType}</td>
+                <td>{violation.ViolationType}</td>
+              </tr>
+            ))}</Badge>
+            {weld.Errors && weld.Errors.length > 0 ? (
+  <span>
+    {weld.Errors.map((error, index) => (
+      <tr key={index}>
+        <td>{error.ErrorCode}</td>
+        <td>{error.ErrorCodeName}</td>
+      </tr>
+    ))}
+  </span>
+) : (
+  <Badge><FontAwesomeIcon icon={faCheck}/> No errors found</Badge>
+)}</div>
           </Accordion.Header>
           <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
+          <Row className='gy-3'>
+  {weldDetailToShow?.Details?.SingleStats?.map((stat, index) => {
+    if (stat.Name === "Wire consumption (length)" || stat.Name === "Wire consumption (weight)" || stat.Name === "Wire consumption (volume)") {
+      return null; // exclude individual wire consumption stats
+    } else {
+      const name = stat.Name;
+      const value = stat.Value;
+      const unit = stat.Unit;
+
+      // Combine wire consumption stats in one text
+      if (name === "Wire consumption (length)") {
+        return null;
+      } else if (name === "Wire consumption (weight)") {
+        const lengthStat = weldDetailToShow?.Details.SingleStats.find((s) => s.Name === "Wire consumption (length)");
+        const volumeStat = weldDetailToShow?.Details.SingleStats.find((s) => s.Name === "Wire consumption (volume)");
+        if (!lengthStat || !volumeStat) {
+          return null; // missing stats, skip
+        }
+        const wireText = `${name.split(" ")[2]} (${lengthStat.Value}m, ${value}${unit}, ${volumeStat.Value}mm³)`;
+        return (
+          <Col md={3} key={index}>
+            <div className="rounded bg-light p-3 d-block" style={{border:"1px solid #dee2e6"}}>
+              <div>Wire consumption</div>
+              <div>{wireText}</div>
+            </div>
+          </Col>
+        );
+      } else {
+        return (
+          <Col md={3} key={index}>
+            <div className="rounded bg-light p-3 d-block" style={{border:"1px solid #dee2e6"}}>
+              <div>{name}</div>
+              <div>{`${value} ${unit}`}</div>
+            </div>
+          </Col>
+        );
+      }
+    }
+  })}
+</Row>
             <Row>
-              <div>
+              </Row>
+              <Row>
+              {/*<div>
                 <table>
                   <thead>
                     <tr>
@@ -369,7 +332,7 @@ function Content({ toggle, isOpen }) {
                   </tbody>
                 </Table>
 
-                {/* <table>
+                 <table>
         <thead>
           <tr>
             <th>Timestamp</th>
@@ -416,8 +379,8 @@ function Content({ toggle, isOpen }) {
         </tbody>
         {currentMax} {currentMin}
         
-      </table> */}
-              </div>
+      </table> 
+              </div>*/}
             </Row>
             <Row className="mt-3 d-flex justify-content-between">
               <Col>Text</Col>
@@ -433,72 +396,47 @@ function Content({ toggle, isOpen }) {
   return (
     <Container style={{ width: "1000px" }} fluid className={classNames("content", { "is-open": isOpen })}>
       <NavBar toggle={toggle} name={'Dashboard'} />
+      <Row>
+        <Col md={12} lg={4} onClick={() => { setFilter("all"); setPageNumber(1); }} className='zoom user-select-none'>
+          <Card className="mb-3">
+            <Card.Body>
+              <div className="d-flex align-items-center">
+                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.4" }}>200</div>
+                <div className="lh-sm ms-5 text-secondary">Total of recent welds to show</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col sm={12} md={12} lg={4} onClick={() => { setFilter("Ok"); setPageNumber(1) }} className='zoom user-select-none'>
+          <Card className="mb-3">
+            <Card.Body>
+              <div className="d-flex align-items-center">
+                <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.4" }}>{totalOk}</div>
+                <div className="lh-sm ms-5 text-secondary">Welds passed with status <strong>OK</strong></div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={12} lg={4} onClick={() => { setFilter("NotOk"); setPageNumber(1) }} className='zoom user-select-none'>
+          <Card className="mb-3">
+            <Card.Body>
+              <div className="d-flex align-items-center">
+                <div className="fs-1 ms-4" style={{ color: "#7e899b", scale: "1.4" }}>{totalNotOk}</div>
+                <div className="lh-sm ms-5 text-secondary">Welds awaits for action to procedure </div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
       {loading ? <span className="loader"></span> : <>
-        <Row>
-          <Col md={12} lg={4} onClick={() => { handleFilter("All"); setCurrentPage(0); handlePageChange();setActiveKey(0) }} className='zoom user-select-none'>
-            <Card className="mb-3">
-              <Card.Body>
-                <div className="d-flex align-items-center">
-                  <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.4" }}>{welds.length}</div>
-                  <div className="lh-sm ms-5 text-secondary">Total of recent welds to show</div>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col sm={12} md={12} lg={4} onClick={() => { handleFilter("Ok"); setCurrentPage(0) }} className='zoom user-select-none'>
-            <Card className="mb-3">
-              <Card.Body>
-                <div className="d-flex align-items-center">
-                  <div className="fs-1 ms-3" style={{ color: "#7e899b", scale: "1.4" }}>{welds.filter((weld) => weld.State === "Ok" || weld.State === "OkEdited").length}</div>
-                  <div className="lh-sm ms-5 text-secondary">Welds passed with status <strong>OK</strong></div>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={12} lg={4} onClick={() => { handleFilter("Not Ok"); setCurrentPage(0) }} className='zoom user-select-none'>
-            <Card className="mb-3">
-              <Card.Body>
-                <div className="d-flex align-items-center">
-                  <div className="fs-1 ms-4" style={{ color: "#7e899b", scale: "1.4" }}>{welds.filter((weld) => weld.State === "NotOk" || weld.State === "NotOkEdited").length}</div>
-                  <div className="lh-sm ms-5 text-secondary">Welds awaits for action to procedure </div>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-        {filterState === 'All' ? <h6 className="mt-3 text-secondary">Showing All Recent Welds</h6> : <h6 className="mt-3 text-secondary">Showing Welds Status "{filterState}"</h6>}
-        <InputGroup>
-              <InputGroup.Text className='text-muted border-0'>Display</InputGroup.Text>
-              <DropdownButton style={{ border: "none",color:"gray" }} variant="light" id="input-group-dropdown-1">
-                <Dropdown.Item>12</Dropdown.Item>
-                <Dropdown.Item>24</Dropdown.Item>
-                <Dropdown.Item>50</Dropdown.Item>
-                <Dropdown.Item>100</Dropdown.Item>
-              </DropdownButton>
-              <Form.Control maxLength={60} type="text" aria-label="Map Name" className='border-0' placeholder="Search maps.." />
-            </InputGroup>
-        {rows}
+        {filter === 'all' ? <h6 className="mt-3 text-secondary">Showing All Recent Welds</h6> : <h6 className="mt-3 text-secondary">Showing Welds Status "{filter}"</h6>}
+        {rows}</>}
         <Row className="justify-content-center mt-3">
           <Col xs="auto">
-            <ReactPaginate
-              previousLabel={<FontAwesomeIcon icon={faChevronLeft} />}
-              nextLabel={<FontAwesomeIcon icon={faChevronRight} />}
-              breakLabel={<Button disabled>...</Button>}
-              pageCount={totalPages}
-              onPageChange={handlePageChange}
-              containerClassName="pagination"
-              pageClassName="page-item"
-              pageLinkClassName="page-link"
-              activeClassName="active"
-              previousClassName="page-item"
-              previousLinkClassName="page-link"
-              nextClassName="page-item"
-              nextLinkClassName="page-link"
-              disabledClassName="disabled"
-            />
+            <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={handlePageChange} />
           </Col>
         </Row>
-      </>}
+      
       <Modal show={show} onHide={hideModal}>
         <Modal.Header closeButton>
           <Modal.Title className="text-secondary">#Product</Modal.Title>
