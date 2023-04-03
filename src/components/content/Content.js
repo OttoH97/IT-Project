@@ -4,9 +4,8 @@ import { Card, Col, Container, Row, Accordion, Button, Modal, Form, Table, Badge
 import NavBar from "./Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
-import { faCheck, faChevronLeft, faChevronRight, faExclamation } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faExclamation } from "@fortawesome/free-solid-svg-icons";
 
-import ReactPaginate from 'react-paginate';
 import axios from 'axios';
 import Pagination from "../pagination";
 
@@ -194,7 +193,7 @@ function Content({ toggle, isOpen }) {
     ))}
   </span>
 ) : (
-  <Badge><FontAwesomeIcon icon={faCheck}/> No errors found</Badge>
+  <span className="d-block p-2 rounded fw-bold text-white" style={{backgroundColor:"rgb(149, 215, 149)",fontSize:"12px"}}><FontAwesomeIcon icon={faCheck}/> No errors found</span>
 )}</div>
           </Accordion.Header>
           <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
@@ -444,8 +443,9 @@ function Content({ toggle, isOpen }) {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3" controlId="formExplantion">
-              <p>Text</p>
-              <Form.Label className="text-secondary">User</Form.Label>
+              <h4 className="text-center fw-bold text-secondary">State will be changed</h4>
+              <p className="text-center">State will be changed from <strong>{weldDetailToShow.State}</strong> to <strong>{weldDetailToShow.State === "Ok" ? "NotOkEdited" : weldDetailToShow.State === "NotOkEdited" ? "OkEdited" : weldDetailToShow.State === "OkEdited" ? "NotOkEdited" : "OkEdited"}</strong></p>
+              <Form.Label className="text-secondary">By user</Form.Label>
               <Form.Control
                 style={{ border: "1px solid #ddd" }}
                 type="text"
