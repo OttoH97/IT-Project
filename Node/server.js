@@ -109,22 +109,67 @@ setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃ¤lein.
 //Tässä haetaan kaikki hitsit
 //////////////////////////////
 
-    app.get('/welds', async (req, res) => {
-      const url = 'http://weldcube.ky.local/api/v4/Welds';
-      const headers = {
-        'api_key': process.env.MY_API_KEY,
-        'Accept': 'application/json'
-      };
-    
-      try {
-        const response = await fetch(url, { headers });
-        const data = await response.json();
-        res.send(data);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send(error);
-      }
+app.get('/welds', async (req, res) => {
+  const url = 'http://weldcube.ky.local/api/v4/Welds';
+  const headers = {
+    'api_key': process.env.MY_API_KEY,
+    'Accept': 'application/json'
+  };
+  const pageSize = Number(req.query.pageSize) || 10; // Default page size is 10
+  const pageNumber = Number(req.query.pageNumber) || 1; // Default page number is 1
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
+  const filter = req.query.filter;
+
+  try {
+    const response = await fetch(url, { headers });
+    const data = await response.json();
+
+    let filteredWelds = data.WeldInfos;
+
+    if (filter && filter !== 'all') {
+      const allowedStates = filter === 'Ok' || filter === 'OkEdited' ? ['Ok', 'OkEdited'] : ['NotOk', 'NotOkEdited'];
+      filteredWelds = filteredWelds.filter((weld) => allowedStates.includes(weld.State));
+    }
+
+    const welds = filteredWelds.slice(startIndex, endIndex);
+
+    const weldsDetailsPromises = welds.map((weld) =>
+      fetch(`http://weldcube.ky.local/api/v4/Welds/${weld.Id}`, { headers })
+        .then((response) => response.json())
+        .then((detailsData) => {
+          return {
+            ...weld,
+            id: weld.Id,
+            state: weld.State,
+            timestamp: weld.Timestamp,
+            duration: detailsData.Duration,
+            errors: detailsData.Errors,
+            welddata: detailsData.WeldData
+          };
+        })
+    );
+
+    const weldsWithDetails = await Promise.all(weldsDetailsPromises);
+    const totalCount = filteredWelds.length;
+    const totalOk = filteredWelds.filter((weld) => weld.State === 'Ok' || weld.State === 'OkEdited').length;
+    const totalNotOk = filteredWelds.filter((weld) => weld.State === 'NotOk' || weld.State === 'NotOkEdited').length;
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    res.send({
+      welds: weldsWithDetails,
+      pageNumber,
+      pageSize,
+      totalPages,
+      totalCount,
+      totalOk,
+      totalNotOk
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
   
   
   //Tässä haetaan yksittäinen hitsin lisätiedot klikkauksella
