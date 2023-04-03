@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import classNames from "classnames";
-import { Card, Col, Container, Row, Accordion, Button, Modal, Form } from "react-bootstrap";
+import { Card, Col, Container, Row, Accordion, Button, Modal, Form, Table, Dropdown, DropdownButton,InputGroup } from "react-bootstrap";
 import NavBar from "./Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
@@ -41,32 +41,67 @@ function Content({ toggle, isOpen }) {
   const showModal = () => setShow(true);
 
 
-  // Haetaan kaikki weld data API:sta
+  //Haetaan kaikki weld data API:sta
+  // useEffect(() => {
+  //   axios.get(`http://localhost:4000/welds`)
+  //     .then(response => {
+  //       setWelds(response.data.WeldInfos);
+  //       setLatestWeld(response.data.WeldInfos[0].Id);
+  //       setLoading(false);
+
+  //     })
+  //     .catch(error => {
+  //       console.log(error);
+  //       setLoading(false);
+
+  //     });
+  // }, [latestWeld]);
+
+  // useEffect(() => {
+  //   axios.get(`http://localhost:4000/welds/${weldID}`)
+  //     .then(response => {
+  //       setWeldDetailToShow(response.data);
+
+  //     })
+  //     .catch(error => {
+  //       console.log(error);
+  //     });
+  // }, [weldID]);
+
   useEffect(() => {
-    axios.get(`http://localhost:4000/welds`)
-      .then(response => {
-        setWelds(response.data.WeldInfos);
-        setLatestWeld(response.data.WeldInfos[0].Id);
+    async function fetchData() {
+      try {
+        const response = await axios.get('http://localhost:4000/welds');
+        const weldsData = response.data.WeldInfos;
+  
+        const weldsDetailsPromises = weldsData.map((weld) =>
+          axios.get(`http://localhost:4000/welds/${weld.Id}`).then((detailsResponse) => {
+            const detailsData = detailsResponse.data;
+            return {
+              ...weld,
+              id: weld.Id,
+              state: weld.State,
+              timestamp: weld.Timestamp,
+              duration: detailsData.Duration,
+              errors: detailsData.Errors,
+              welddata: detailsData.WeldData
+            };
+          })
+        );
+  
+        const weldsWithDetails = await Promise.all(weldsDetailsPromises);
+        setWelds(weldsWithDetails);
         setLoading(false);
-
-      })
-      .catch(error => {
-        console.log(error);
+      } catch (error) {
+        console.error(error);
         setLoading(false);
+      }
+    }
+  
+    fetchData();
+  }, []);
 
-      });
-  }, [latestWeld]);
-
-  useEffect(() => {
-    axios.get(`http://localhost:4000/welds/${weldID}`)
-      .then(response => {
-        setWeldDetailToShow(response.data);
-
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  }, [weldID]);
+  console.log(welds)
 
   // useEffect(() => {
   //   axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`)
@@ -91,29 +126,42 @@ function Content({ toggle, isOpen }) {
   // }, [weldID]);
 
 
-    axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`)
-      .then(response => {
-        const actualValuesData = response.data.ActualValues;
 
-        axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${3}`)
-          .then(response => {
-            const qMasterValuesData = response.data.QMaster.QMasterLimitValuesList;
-            
-            const actualValuesWithQMaster = {
-              Values: actualValuesData,
-              QMasterLimitValuesList: qMasterValuesData
-            }
-            setActualValues(actualValuesWithQMaster);
-            setCurrentMax(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue+actualValuesWithQMaster.QMasterLimitValuesList[0].UpperLimitValue)
-            setCurrentMin(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue-(actualValuesWithQMaster.QMasterLimitValuesList[0].UpperLimitValue))
-          })
-          .catch(error => {
-            console.log(error);
-          });
+  //   axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/ActualValues`)
+  //     .then(response => {
+  //       const actualValuesData = response.data.ActualValues;
+
+  //       axios.get(`http://localhost:4000/api/v4/Welds/${weldID}/Sections/${3}`)
+  //         .then(response => {
+  //           const qMasterValuesData = response.data.QMaster.QMasterLimitValuesList;
+
+  //           const actualValuesWithQMaster = {
+  //             Values: actualValuesData,
+  //             QMasterLimitValuesList: qMasterValuesData
+  //           }
+  //           setActualValues(actualValuesWithQMaster);
+  //           setCurrentMax(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue+actualValuesWithQMaster.QMasterLimitValuesList[0].UpperLimitValue)
+  //           setCurrentMin(actualValuesWithQMaster.QMasterLimitValuesList[0].CommandValue-(actualValuesWithQMaster.QMasterLimitValuesList[0].UpperLimitValue))
+  //         })
+  //         .catch(error => {
+  //           console.log(error);
+  //         });
+  //     })
+  //     .catch(error => {
+  //       console.log(error);
+  // }, [weldID]);
+
+  // Haetaan weldin actualvalues
+  const handleToggle = (weldId) => {
+    axios.get(`http://localhost:4000/api/v4/Welds/${weldId}/ActualValues`)
+      .then(response => {
+        setActualValues(response.data.ActualValues)
       })
       .catch(error => {
         console.log(error);
-  }, [weldID]);
+      });
+  };
+
 
   // Filters
   const handleFilter = (filter) => {
@@ -189,8 +237,8 @@ function Content({ toggle, isOpen }) {
     </tr>
   ));
 
-  const limitViolations = weldDetailToShow.WeldData?.LimitViolations?.map((violation) => (
-    <tr key={violation.ValueType}>
+  const limitViolations = welds.details?.WeldData?.LimitViolations?.map((violation, index) => (
+    <tr key={index}>
       <td>{violation.ValueType}</td>
       <td>{violation.ViolationType}</td>
     </tr>
@@ -204,26 +252,34 @@ function Content({ toggle, isOpen }) {
     </tr>
   ));
 
-console.log(actualValues);
-
-  let rows = currentItems.map((x,index) => {
-    const { Id, Timestamp, ProcessingStepNumber, PartSerialNumber, PartArticleNumber, MachineType, MachineSerialNumber, Details, State, Welder } = x;
-
+  let rows = currentItems.map((weld, index) => {
     return (
-      <Accordion className="mt-3" onClick={() => setWeldID(Id)} activeKey={activeKey} onSelect={handleAccordionClick}>
+      <Accordion className="mt-3" onClick={() => { handleToggle(weld.Id) }} activeKey={activeKey} onSelect={handleAccordionClick}>
         <Accordion.Item eventKey={index} className="border-0 shadow-sm">
           <Accordion.Header>
             <Row className='align-items-center w-100'>
-              <Col xs={'auto'}>
-                <FontAwesomeIcon icon={State === "NotOk" || State === 'NotOkEdited' ? faExclamation : faCircleCheck} size="4x" style={{ color: State === "NotOk" || State === 'NotOkEdited' ? "#ff8a8a" : "#95d795" }} className={State === "NotOk" || State === 'NotOkEdited' ? "ms-4 me-4" : ""} />
+              <Col xs={'auto'} onClick={showModal}>
+                <FontAwesomeIcon icon={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? faExclamation : faCircleCheck} size="4x" style={{ color: weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "#ff8a8a" : "#95d795" }} className={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "ms-4 me-4" : ""} />
               </Col>
-              <Col xs={'auto'} className="text-secondary lh-sm">Name: #{ProcessingStepNumber} {PartArticleNumber}<br />Date: {formatTimestamp(Timestamp)}<br />Status: {State}</Col>
+              <Col xs={'auto'} className="text-secondary lh-sm">Name: #{weld.ProcessingStepNumber} {weld.PartArticleNumber}<br />Date: {formatTimestamp(weld.Timestamp)}<br />Status: {weld.State}</Col>
             </Row>
+            <span>{weld.details?.WeldData?.LimitViolations?.map((violation, index) => (
+    <tr key={index}>
+      <td>{violation.ValueType}</td>
+      <td>{violation.ViolationType}</td>
+    </tr>
+  ))}</span>
+  <span>{weld.details?.Errors?.map((error, index) => (
+    <tr key={index}>
+    <td>{error.ErrorCode}</td>
+    <td>{error.ErrorCodeName}</td>
+  </tr>
+  ))}</span>
           </Accordion.Header>
           <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
             <Row>
               <div>
-                {/*<table>
+                <table>
                   <thead>
                     <tr>
                       <th>Violation Type</th>
@@ -247,26 +303,6 @@ console.log(actualValues);
                     ))}
                   </tbody>
                 </table>
-                <h1>Actual Values</h1>
-                <ul>
-                   {actualValues.slice(0, 5).map((values, index) => (
-                    <li key={index}>
-                      <p>TimeStamp: {values.TimeStamp}</p>
-                      <ul>
-                        {values.Values.slice(0, 1).map((value, index) => (
-                          <li key={index}>
-                            <p>Name: {value.Name}</p>
-                            <p>Unit: {value.Unit}</p>
-                            <p>Max: {value.Max}</p>
-                            <p>Mean: {value.Mean}</p>
-                            <p>Min: {value.Min}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))} 
-                </ul>
-
                 <h2>Stats</h2>
                 <table>
                   <thead>
@@ -309,8 +345,31 @@ console.log(actualValues);
                     </tr>
                   </thead>
                   <tbody>{singleStats}</tbody>
-                </table>*/}
-                <table>
+                </table>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>TimeStamp</th>
+                      <th>I</th>
+                      <th>U</th>
+                      <th>Wfs</th>
+                      <th>Power</th>
+                      <th>Welding speed</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {actualValues.slice(0, 5).map((value) => (
+                      <tr key={value.TimeStamp}>
+                        <td>{value.TimeStamp}</td>
+                        {value.Values.map((val) => (
+                          <td key={val.Name}>{val.Mean}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+
+                {/* <table>
         <thead>
           <tr>
             <th>Timestamp</th>
@@ -357,7 +416,7 @@ console.log(actualValues);
         </tbody>
         {currentMax} {currentMin}
         
-      </table>
+      </table> */}
               </div>
             </Row>
             <Row className="mt-3 d-flex justify-content-between">
@@ -376,7 +435,7 @@ console.log(actualValues);
       <NavBar toggle={toggle} name={'Dashboard'} />
       {loading ? <span className="loader"></span> : <>
         <Row>
-          <Col md={12} lg={4} onClick={() => { handleFilter("All"); setCurrentPage(0); handlePageChange() }} className='zoom user-select-none'>
+          <Col md={12} lg={4} onClick={() => { handleFilter("All"); setCurrentPage(0); handlePageChange();setActiveKey(0) }} className='zoom user-select-none'>
             <Card className="mb-3">
               <Card.Body>
                 <div className="d-flex align-items-center">
@@ -406,8 +465,18 @@ console.log(actualValues);
               </Card.Body>
             </Card>
           </Col>
-        </Row>{weldID}
+        </Row>
         {filterState === 'All' ? <h6 className="mt-3 text-secondary">Showing All Recent Welds</h6> : <h6 className="mt-3 text-secondary">Showing Welds Status "{filterState}"</h6>}
+        <InputGroup>
+              <InputGroup.Text className='text-muted border-0'>Display</InputGroup.Text>
+              <DropdownButton style={{ border: "none",color:"gray" }} variant="light" id="input-group-dropdown-1">
+                <Dropdown.Item>12</Dropdown.Item>
+                <Dropdown.Item>24</Dropdown.Item>
+                <Dropdown.Item>50</Dropdown.Item>
+                <Dropdown.Item>100</Dropdown.Item>
+              </DropdownButton>
+              <Form.Control maxLength={60} type="text" aria-label="Map Name" className='border-0' placeholder="Search maps.." />
+            </InputGroup>
         {rows}
         <Row className="justify-content-center mt-3">
           <Col xs="auto">
@@ -431,39 +500,41 @@ console.log(actualValues);
         </Row>
       </>}
       <Modal show={show} onHide={hideModal}>
-      <Modal.Header closeButton>
-        <Modal.Title className="text-secondary">#Product</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-          <Form.Group className="mb-3" controlId="formExplantion">
-            <Form.Label className="text-secondary">Are you sure you want to update #product state from OK to Not Ok?</Form.Label>
-            <Form.Control
-              style={{ border: "1px solid #ddd" }}
-              type="text"
-              placeholder="admin"
-              autoFocus
-              disabled
-            />
-            <Form.Control
-              style={{ border: "1px solid #ddd" }}
-              type="text"
-              autoFocus
-              value={explanation}
-              onChange={handleExplanationChange}
-            />
-          </Form.Group>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={hideModal}>
-          Close
-        </Button>
-        <Button variant="primary" onClick={handleSubmit}>
-          Update
-        </Button>
-      </Modal.Footer>
-    </Modal>
+        <Modal.Header closeButton>
+          <Modal.Title className="text-secondary">#Product</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3" controlId="formExplantion">
+              <p>Text</p>
+              <Form.Label className="text-secondary">User</Form.Label>
+              <Form.Control
+                style={{ border: "1px solid #ddd" }}
+                type="text"
+                placeholder="admin"
+                autoFocus
+                disabled
+              /><br />
+              <Form.Label className="text-secondary">Explanation</Form.Label>
+              <Form.Control
+                style={{ border: "1px solid #ddd" }}
+                type="text"
+                autoFocus
+                value={explanation}
+                onChange={handleExplanationChange}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={hideModal}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleSubmit}>
+            Update
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
     </Container>
   );
