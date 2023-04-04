@@ -4,7 +4,7 @@ import { Card, Col, Container, Row, Accordion, Button, Modal, Form, Table, Badge
 import NavBar from "./Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
-import { faCheck, faExclamation } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faCross, faExclamation, faLink, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 import axios from 'axios';
 import Pagination from "../pagination";
@@ -14,6 +14,8 @@ function Content({ toggle, isOpen }) {
 
   // Welds from weldcube API
   const [welds, setWelds] = useState([]);
+
+  const [latestObjectId, setLatestObjectId] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [pageSize, setPageSize] = useState(10);
@@ -174,27 +176,23 @@ function Content({ toggle, isOpen }) {
               <Col xs={'auto'} onClick={showModal} style={{zIndex:"2"}}>
                 <FontAwesomeIcon icon={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? faExclamation : faCircleCheck} size="4x" style={{ color: weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "#ff8a8a" : "#95d795" }} className={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "ms-4 me-4" : ""} />
               </Col>
-              <Col xs={'auto'} className="text-secondary lh-sm">Name: #{weld.ProcessingStepNumber} {weld.PartArticleNumber}<br />Date: {formatTimestamp(weld.Timestamp)}<br />Status: {weld.State}</Col>
+              <Col xs={'auto'} className="text-secondary lh-sm">Name: #{weld.PartSerialNumber} {weld.PartArticleNumber}<br />Date: {formatTimestamp(weld.Timestamp)}<br />Status: {weld.State}</Col>
             </Row>
             <div className="d-block">
-            <Badge>{weld.Details?.LimitViolations?.map((violation, index) => (
-              <tr key={index}>
-                <td>{violation.ValueType}</td>
-                <td>{violation.ViolationType}</td>
-              </tr>
-            ))}</Badge>
-            {weld.Errors && weld.Errors.length > 0 ? (
-  <span>
-    {weld.Errors.map((error, index) => (
-      <tr key={index}>
-        <td>{error.ErrorCode}</td>
-        <td>{error.ErrorCodeName}</td>
-      </tr>
+            {weld.Details?.LimitViolations?.length > 0 && (
+  <span className="d-block p-2 rounded fw-bold text-white me-3" style={{backgroundColor:"rgba(53, 64, 82, 0.4)",fontSize:"12px"}}>
+    <FontAwesomeIcon icon={faXmark}/> Violations:<br/>
+    {weld.Details.LimitViolations.map((violation, index) => (
+      <span key={index}>{violation.ValueType}: {violation.ViolationType}</span>
     ))}
   </span>
-) : (
-  <span className="d-block p-2 rounded fw-bold text-white" style={{backgroundColor:"rgb(149, 215, 149)",fontSize:"12px"}}><FontAwesomeIcon icon={faCheck}/> No errors found</span>
-)}</div>
+)}
+
+            {weld.Errors?.map((error, index) => (
+                <span>{error.ErrorCode}: {error.ErrorCodeName}</span>
+            ))}
+              
+</div>
           </Accordion.Header>
           <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
           <Row className='gy-3'>
@@ -381,9 +379,10 @@ function Content({ toggle, isOpen }) {
       </table> 
               </div>*/}
             </Row>
-            <Row className="mt-3 d-flex justify-content-between">
-              <Col>Text</Col>
-              <Col><Button variant="primary" onClick={showModal}>Change Status</Button></Col>
+            <Row className="mt-5 d-flex justify-content-end">
+
+              <Col xs="auto"><Button variant="primary" onClick={showModal}>Change Status</Button></Col>
+              <Col xs="auto"><a href={`http://weldcube.ky.local/TPSI/ProcessingSteps/Details/${weldDetailToShow.Id}`} target="_blank"><Button variant="primary"><FontAwesomeIcon icon={faLink}/></Button></a></Col>
             </Row>
 
           </Accordion.Body>
