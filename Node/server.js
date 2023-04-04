@@ -269,28 +269,34 @@ app.get('/welds', async (req, res) => {
   });
     
 
-  //section tiedot
+//Santeri sections
+app.get('/welds/:weldId/Sections', async (req, res) => {
+  const weldId = req.params.weldId;
+  const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}`;
+  const headers = {
+    'api_key': process.env.MY_API_KEY,
+    'Accept': 'application/json',
+    'Content-type' : 'application/json'
+  };
 
-  app.get('/api/v4/Welds/:weldId/Sections/:sectionNumber', async (req, res) => {
-    const weldId = req.params.weldId;
-    const sectionNumber = req.params.sectionNumber;
-  
-    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/Sections/${sectionNumber}`;
-  
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          'api_key': process.env.MY_API_KEY,
-          'Accept': 'application/json',
-        },
-      });
-  
-      res.json(response.data);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send(error);
+  try {
+    const response = await axios.get(url, { headers });
+    const sections = response.data.WeldData.Sections;
+    const sectionDetails = [];
+
+    for (let i = 0; i < sections.length; i++) {
+      const sectionNumber = sections[i].Number;
+      const sectionUrl = sections[i].Details.replace('{sectionid}', sectionNumber);
+      const sectionResponse = await axios.get(sectionUrl, { headers });
+      sectionDetails.push(sectionResponse.data);
     }
-  });
+
+    res.json(sectionDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
 
   // Calculate the position of the weld at the time it exceeded the limit value
 
