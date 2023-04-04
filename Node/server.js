@@ -298,6 +298,8 @@ app.get('/welds/:weldId/Sections', async (req, res) => {
   }
 });
 
+//http://localhost:4000/Welds/fa075980-688d-442b-990e-b274e67fb13f/Sections
+
   // Calculate the position of the weld at the time it exceeded the limit value
 
   function calculatePosition(actualValues, qMasterValues) {
