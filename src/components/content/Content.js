@@ -80,7 +80,7 @@ function Content({ toggle, isOpen }) {
     fetchData();
   }, [pageNumber, pageSize, filter]);
 
-  // Haetaan weldin actualvalues
+  // Haetaan weldin actualvalues ja lasketaan paikka missä LimitViolation
   const handleToggle = async (weldId) => {
     const positionBySection = [];
     
@@ -122,19 +122,19 @@ function Content({ toggle, isOpen }) {
           console.log(activeQMasterList);
         }
 
-      for (const section of sections) {
-        const qMasterLimitValues = section.QMaster.QMasterLimitValuesList;
+      // for (const section of sections) {
+      //   const qMasterLimitValues = section.QMaster.QMasterLimitValuesList;
 
-        for (const limitValue of qMasterLimitValues) {
-          if (
-            ["Current", "Voltage", "WireFeedSpeed"].includes(limitValue.ViolationType) &&
-            limitValue.IsActive
-          ) {
-            // Do something here if the limit value is active and its type is one we care about
-            console.log(`Limit value ${limitValue.ViolationType} is active in section ${section.Number}`);
-          }
-        }
-      }
+      //   for (const limitValue of qMasterLimitValues) {
+      //     if (
+      //       ["Current", "Voltage", "WireFeedSpeed"].includes(limitValue.ViolationType) &&
+      //       limitValue.IsActive
+      //     ) {
+      //       // Do something here if the limit value is active and its type is one we care about
+      //       console.log(`Limit value ${limitValue.ViolationType} is active in section ${section.Number}`);
+      //     }
+      //   }
+      // }
   
         // Get the actual values for the weld
         const actualValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldId}/ActualValues`);
