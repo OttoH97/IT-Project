@@ -173,36 +173,53 @@ function Content({ toggle, isOpen }) {
     </tr>
   ));
 
+  console.log(welds)
+
   let rows = welds.map((weld, index) => {
     return (
-      <Accordion id={index} className="mt-3" onClick={() => {handleClick(index); handleToggle(weld.Id);setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
+      <Accordion id={index} className="mt-3" onClick={() => { handleClick(index); handleToggle(weld.Id); setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
         <Accordion.Item eventKey={index} className="border-0 shadow-sm">
           <Accordion.Header>
             <Row className='align-items-center w-100'>
-              <Col xs={'auto'} onClick={showModal} style={{zIndex:"2"}}>
+              <Col xs={'auto'} onClick={showModal} style={{ zIndex: "2" }}>
                 <FontAwesomeIcon icon={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? faExclamation : faCircleCheck} size="4x" style={{ color: weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "#ff8a8a" : "#95d795" }} className={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "ms-4 me-4" : ""} />
               </Col>
               <Col xs={'auto'} className="text-secondary lh-sm">Name: #{weld.PartSerialNumber} {weld.PartArticleNumber}<br />Date: {formatTimestamp(weld.Timestamp)}<br />Status: {weld.State}</Col>
             </Row>
-            <div className="d-block">
-            {weld.Details?.LimitViolations?.length > 0 && (
-  <span className="d-block p-2 rounded fw-bold text-white me-3" style={{backgroundColor:"rgba(53, 64, 82, 0.4)",fontSize:"12px"}}>
-    <FontAwesomeIcon icon={faXmark}/> Violations:<br/>
-    {weld.Details.LimitViolations.map((violation, index) => (
-      <span key={index}>{violation.ValueType}: {violation.ViolationType}</span>
-    ))}
-  </span>
-)}
-
+            <Col xs={'auto'}>
+              {weld.Details?.LimitViolations?.length > 0 && (
+                <span className="d-block p-1 rounded fw-bold text-white me-3" style={{ backgroundColor: "rgb(255, 138, 138)", fontSize: "12px" }}>
+                Violations: {weld.Details.LimitViolations.map((violation, index) => (
+                  <span key={index}>{violation.ValueType} {violation.ViolationType === "Upper" ? "++" : (violation.ViolationType === "Lower" ? "--" : "")} </span>
+                ))}
+              </span>
+              )}
+            </Col>
             {weld.Errors?.map((error, index) => (
                 <span>{error.ErrorCode}: {error.ErrorCodeName}</span>
-            ))}
-              
-</div>
+              ))}
           </Accordion.Header>
           <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
-          <Row className='gy-3'>
-  {weldDetailToShow?.Details?.SingleStats?.map((stat, index) => {
+            <Row className='gy-3'>
+            <Col md={4}><div className="rounded bg-light p-3 d-block" style={{ border: "1px solid #dee2e6" }}>
+                <div>Start Time</div>
+                <div>{weldDetailToShow?.Timestamp ? formatTimestamp(weldDetailToShow.Timestamp) : 'Not found'}</div>
+              </div>
+              </Col>
+              
+              <Col md={4}><div className="rounded bg-light p-3 d-block" style={{ border: "1px solid #dee2e6" }}>
+                <div>Duration</div>
+                <div>{weldDetailToShow?.Duration ? (weldDetailToShow.Duration).toFixed(1) + ' s' : 'Not found'}</div>
+              </div>
+              </Col>
+
+              {/* <Col md={4}><div className="rounded bg-light p-3 d-block" style={{ border: "1px solid #dee2e6" }}>
+                <div>Part Item Number</div>
+                <div>{weldDetailToShow?.PartArticleNumber ? weldDetailToShow.PartArticleNumber : 'Not found'}</div>
+              </div>
+              </Col> */}
+              
+              {weldDetailToShow?.Details?.SingleStats?.map((stat, index) => {
     if (stat.Name === "Wire consumption (length)" || stat.Name === "Wire consumption (weight)" || stat.Name === "Wire consumption (volume)") {
       return null; // exclude individual wire consumption stats
     } else {
@@ -214,14 +231,14 @@ function Content({ toggle, isOpen }) {
       if (name === "Wire consumption (length)") {
         return null;
       } else if (name === "Wire consumption (weight)") {
-        const lengthStat = weldDetailToShow?.Details.SingleStats.find((s) => s.Name === "Wire consumption (length)");
-        const volumeStat = weldDetailToShow?.Details.SingleStats.find((s) => s.Name === "Wire consumption (volume)");
+        const lengthStat = weldDetailToShow?.Details?.SingleStats?.find((s) => s.Name === "Wire consumption (length)");
+        const volumeStat = weldDetailToShow?.Details?.SingleStats?.find((s) => s.Name === "Wire consumption (volume)");
         if (!lengthStat || !volumeStat) {
           return null; // missing stats, skip
         }
         const wireText = `${name.split(" ")[2]} (${lengthStat.Value}m, ${value}${unit}, ${volumeStat.Value}mm³)`;
         return (
-          <Col md={3} key={index}>
+          <Col md={4} key={index}>
             <div className="rounded bg-light p-3 d-block" style={{border:"1px solid #dee2e6"}}>
               <div>Wire consumption</div>
               <div>{wireText}</div>
@@ -230,20 +247,24 @@ function Content({ toggle, isOpen }) {
         );
       } else {
         return (
-          <Col md={3} key={index}>
+          <Col md={4} key={index}>
             <div className="rounded bg-light p-3 d-block" style={{border:"1px solid #dee2e6"}}>
               <div>{name}</div>
-              <div>{`${value} ${unit}`}</div>
+              <div>{value} {unit}</div>
             </div>
           </Col>
         );
       }
     }
   })}
-</Row>
+      
+
+            
+
+            </Row>
             <Row>
-              </Row>
-              <Row>
+            </Row>
+            <Row>
               {/*<div>
                 <table>
                   <thead>
@@ -388,7 +409,7 @@ function Content({ toggle, isOpen }) {
             <Row className="mt-5 d-flex justify-content-end">
 
               <Col xs="auto"><Button variant="primary" onClick={showModal}>Change Status</Button></Col>
-              <Col xs="auto"><a href={`http://weldcube.ky.local/TPSI/ProcessingSteps/Details/${weldDetailToShow.Id}`} target="_blank"><Button variant="primary"><FontAwesomeIcon icon={faLink}/></Button></a></Col>
+              <Col xs="auto"><a href={`http://weldcube.ky.local/TPSI/ProcessingSteps/Details/${weldDetailToShow.Id}`} target="_blank"><Button variant="primary"><FontAwesomeIcon icon={faLink} /></Button></a></Col>
             </Row>
 
           </Accordion.Body>
@@ -435,12 +456,12 @@ function Content({ toggle, isOpen }) {
       {loading ? <span className="loader"></span> : <>
         {filter === 'all' ? <h6 className="mt-3 text-secondary">Showing All Recent Welds</h6> : <h6 className="mt-3 text-secondary">Showing Welds Status "{filter}"</h6>}
         {rows}</>}
-        <Row className="justify-content-center mt-3">
-          <Col xs="auto">
-            <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={handlePageChange} />
-          </Col>
-        </Row>
-      
+      <Row className="justify-content-center mt-3">
+        <Col xs="auto">
+          <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={handlePageChange} />
+        </Col>
+      </Row>
+
       <Modal show={show} onHide={hideModal}>
         <Modal.Header closeButton>
           <Modal.Title className="text-secondary">#Product</Modal.Title>
