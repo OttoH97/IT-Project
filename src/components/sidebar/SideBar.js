@@ -10,7 +10,7 @@ const Sidebar = ({ toggle, isOpen }) => {
 
   return (
     <div className={classNames("sidebar", { "is-open": isOpen })}>
-      <Nav className="flex-column">
+        <Nav className="flex-column">
         <div className="sidebar-header">
           {isOpen === true ? <FontAwesomeIcon onClick={toggle} icon={faTimes} pull="right" size="2x" className="mt-4 me-4 d-block d-sm-none" style={{right:"25px",cursor:"pointer"}} /> : null}
 
@@ -35,7 +35,7 @@ const Sidebar = ({ toggle, isOpen }) => {
         <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faEnvelope} className="me-2" />Mail List</Nav.Link>
         </LinkContainer>
       </Nav>
-    </div>
+      </div>
   );
 };
 

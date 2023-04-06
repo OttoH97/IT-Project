@@ -41,11 +41,17 @@ function Content({ toggle, isOpen }) {
 
   const [activeKey, setActiveKey] = useState(null);
   const [explanation, setExplanation] = useState('');
+  const [id, setId] = useState('');
 
   // Modal
   const [show, setShow] = useState(false);
   const hideModal = () => setShow(false);
   const showModal = () => setShow(true);
+
+  const handleClick = (id) => {
+    const element = document.getElementById(id);
+    element.scrollIntoView({ behavior: "smooth" });
+  };
 
   // Haetaan yleiset statiikat
   useEffect(() => {
@@ -169,7 +175,7 @@ function Content({ toggle, isOpen }) {
 
   let rows = welds.map((weld, index) => {
     return (
-      <Accordion className="mt-3" onClick={() => { handleToggle(weld.Id);setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
+      <Accordion id={index} className="mt-3" onClick={() => {handleClick(index); handleToggle(weld.Id);setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
         <Accordion.Item eventKey={index} className="border-0 shadow-sm">
           <Accordion.Header>
             <Row className='align-items-center w-100'>
@@ -392,7 +398,7 @@ function Content({ toggle, isOpen }) {
   });
 
   return (
-    <Container style={{ width: "1000px" }} fluid className={classNames("content", { "is-open": isOpen })}>
+    <Container style={isOpen ? { width: "1000px", marginLeft: "270px" } : { width: "1000px" }} fluid className={classNames("content", { "is-open": isOpen })}>
       <NavBar toggle={toggle} name={'Dashboard'} />
       <Row>
         <Col md={12} lg={4} onClick={() => { setFilter("all"); setPageNumber(1); }} className='zoom user-select-none'>
