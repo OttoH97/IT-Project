@@ -311,10 +311,22 @@ app.get('/welds', async (req, res) => {
         const sectionNumber = sections[i].Number;
         const sectionUrl = sections[i].Details.replace('{sectionid}', sectionNumber);
         const sectionResponse = await axios.get(sectionUrl, { headers });
-        sectionDetails.push(sectionResponse.data);
+        const sectionData = sectionResponse.data;
+        // Include ActualValues array from the additional API endpoint
+        const actualValuesUrl = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
+        const actualValuesResponse = await axios.get(actualValuesUrl, { headers });
+        const actualValues = actualValuesResponse.data.ActualValues;
+        sectionData.ActualValues = actualValues;
+        sectionDetails.push(sectionData);
       }
   
-      res.json(sectionDetails);
+      // Create a new object with ActualValues array on top of the JSON data
+      const result = {
+        ActualValues: sectionDetails.length > 0 ? sectionDetails[0].ActualValues : [],
+        SectionDetails: sectionDetails
+      };
+  
+      res.json(result);
     } catch (error) {
       console.error(error);
       res.status(500).send(error);

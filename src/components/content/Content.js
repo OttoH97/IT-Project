@@ -8,9 +8,9 @@ import { faCheck, faCross, faExclamation, faLink, faXmark } from "@fortawesome/f
 
 import axios from 'axios';
 import Pagination from "../pagination";
+import ActualValuesComponent from "./actualvalues";
 
 function Content({ toggle, isOpen }) {
-
 
   // Welds from weldcube API
   const [welds, setWelds] = useState([]);
@@ -35,6 +35,8 @@ function Content({ toggle, isOpen }) {
   const [actualValues, setActualValues] = useState([])
   const [qMasterValues, setQMasterValues] = useState([])
   const [violations, setViolations] = useState([]);
+  const [sectionDetails, setSectionDetails] = useState([]);
+  const [counterMap, setCounterMap] = useState({});
 
   const [currentMax, setCurrentMax] = useState(0);
   const [currentMin, setCurrentMin] = useState(0);
@@ -52,6 +54,7 @@ function Content({ toggle, isOpen }) {
     const element = document.getElementById(id);
     element.scrollIntoView({ behavior: "smooth" });
   };
+  
 
   // Haetaan yleiset statiikat
   useEffect(() => {
@@ -87,15 +90,25 @@ function Content({ toggle, isOpen }) {
   }, [pageNumber, pageSize, filter]);
 
   // Haetaan weldin actualvalues
-  const handleToggle = (weldId) => {
-    axios.get(`http://localhost:4000/api/v4/Welds/${weldId}/ActualValues`)
+  const handleToggle = (id) => {
+    axios.get(`http://localhost:4000/welds/${id}/Sections`)
       .then(response => {
         setActualValues(response.data.ActualValues)
+        setSectionDetails(response.data.SectionDetails)
       })
       .catch(error => {
         console.log(error);
       });
   };
+
+  const incrementCounter = (timeStamp) => {
+    setCounterMap(prevCounterMap => {
+      const newCounterMap = { ...prevCounterMap };
+      newCounterMap[timeStamp] = (newCounterMap[timeStamp] || 0) + 1;
+      return newCounterMap;
+    });
+  }
+
 
   // Pagination
   function handlePageChange(page) {
@@ -133,7 +146,6 @@ function Content({ toggle, isOpen }) {
     axios.post(`http://localhost:4000/api/v4/Welds/${weldID}/ChangeState?explanation=${explanation}&user=${user}`)
     hideModal();
   };
-
 
   const stats = weldDetailToShow.WeldData?.Stats?.map((stat) => (
     <tr key={stat.Name}>
@@ -173,11 +185,11 @@ function Content({ toggle, isOpen }) {
     </tr>
   ));
 
-  console.log(welds)
+
 
   let rows = welds.map((weld, index) => {
     return (
-      <Accordion id={index} className="mt-3" onClick={() => { handleClick(index); handleToggle(weld.Id); setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
+      <Accordion id={index} className="mt-3" onClick={() => { handleClick(index);setWeldID(weld.Id); handleToggle(weld.Id); setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
         <Accordion.Item eventKey={index} className="border-0 shadow-sm">
           <Accordion.Header>
             <Row className='align-items-center w-100'>
@@ -189,24 +201,24 @@ function Content({ toggle, isOpen }) {
             <Col xs={'auto'}>
               {weld.Details?.LimitViolations?.length > 0 && (
                 <span className="d-block p-1 rounded fw-bold text-white me-3" style={{ backgroundColor: "rgb(255, 138, 138)", fontSize: "12px" }}>
-                Violations: {weld.Details.LimitViolations.map((violation, index) => (
-                  <span key={index}>{violation.ValueType} {violation.ViolationType === "Upper" ? "++" : (violation.ViolationType === "Lower" ? "--" : "")} </span>
-                ))}
-              </span>
+                  Violations: {weld.Details.LimitViolations.map((violation, index) => (
+                    <span key={index}>{violation.ValueType} {violation.ViolationType === "Upper" ? "++" : (violation.ViolationType === "Lower" ? "--" : "")} </span>
+                  ))}
+                </span>
               )}
             </Col>
             {weld.Errors?.map((error, index) => (
-                <span>{error.ErrorCode}: {error.ErrorCodeName}</span>
-              ))}
+              <span>{error.ErrorCode}: {error.ErrorCodeName}</span>
+            ))}
           </Accordion.Header>
           <Accordion.Body style={{ backgroundColor: "white" }} className='text-secondary'>
             <Row className='gy-3'>
-            <Col md={4}><div className="rounded bg-light p-3 d-block" style={{ border: "1px solid #dee2e6" }}>
+              <Col md={4}><div className="rounded bg-light p-3 d-block" style={{ border: "1px solid #dee2e6" }}>
                 <div>Start Time</div>
                 <div>{weldDetailToShow?.Timestamp ? formatTimestamp(weldDetailToShow.Timestamp) : 'Not found'}</div>
               </div>
               </Col>
-              
+
               <Col md={4}><div className="rounded bg-light p-3 d-block" style={{ border: "1px solid #dee2e6" }}>
                 <div>Duration</div>
                 <div>{weldDetailToShow?.Duration ? (weldDetailToShow.Duration).toFixed(1) + ' s' : 'Not found'}</div>
@@ -218,55 +230,97 @@ function Content({ toggle, isOpen }) {
                 <div>{weldDetailToShow?.PartArticleNumber ? weldDetailToShow.PartArticleNumber : 'Not found'}</div>
               </div>
               </Col> */}
-              
+
               {weldDetailToShow?.Details?.SingleStats?.map((stat, index) => {
-    if (stat.Name === "Wire consumption (length)" || stat.Name === "Wire consumption (weight)" || stat.Name === "Wire consumption (volume)") {
-      return null; // exclude individual wire consumption stats
-    } else {
-      const name = stat.Name;
-      const value = stat.Value;
-      const unit = stat.Unit;
+                if (stat.Name === "Wire consumption (length)" || stat.Name === "Wire consumption (weight)" || stat.Name === "Wire consumption (volume)") {
+                  return null; // exclude individual wire consumption stats
+                } else {
+                  const name = stat.Name;
+                  const value = stat.Value;
+                  const unit = stat.Unit;
 
-      // Combine wire consumption stats in one text
-      if (name === "Wire consumption (length)") {
-        return null;
-      } else if (name === "Wire consumption (weight)") {
-        const lengthStat = weldDetailToShow?.Details?.SingleStats?.find((s) => s.Name === "Wire consumption (length)");
-        const volumeStat = weldDetailToShow?.Details?.SingleStats?.find((s) => s.Name === "Wire consumption (volume)");
-        if (!lengthStat || !volumeStat) {
-          return null; // missing stats, skip
+                  // Combine wire consumption stats in one text
+                  if (name === "Wire consumption (length)") {
+                    return null;
+                  } else if (name === "Wire consumption (weight)") {
+                    const lengthStat = weldDetailToShow?.Details?.SingleStats?.find((s) => s.Name === "Wire consumption (length)");
+                    const volumeStat = weldDetailToShow?.Details?.SingleStats?.find((s) => s.Name === "Wire consumption (volume)");
+                    if (!lengthStat || !volumeStat) {
+                      return null; // missing stats, skip
+                    }
+                    const wireText = `${name.split(" ")[2]} (${lengthStat.Value}m, ${value}${unit}, ${volumeStat.Value}mm³)`;
+                    return (
+                      <Col md={4} key={index}>
+                        <div className="rounded bg-light p-3 d-block" style={{ border: "1px solid #dee2e6" }}>
+                          <div>Wire consumption</div>
+                          <div>{wireText}</div>
+                        </div>
+                      </Col>
+                    );
+                  } else {
+                    return (
+                      <Col md={4} key={index}>
+                        <div className="rounded bg-light p-3 d-block" style={{ border: "1px solid #dee2e6" }}>
+                          <div>{name}</div>
+                          <div>{value} {unit}</div>
+                        </div>
+                      </Col>
+                    );
+                  }
+                }
+              })}
+<div>
+  <h1>Actual Values</h1>
+  <button onClick={() => handleToggle(weldID)}>Fetch Actual Values</button>
+  {weldID}
+  <table>
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Unit</th>
+        <th>MAX</th>
+        <th>MIN</th>
+        <th>Max</th>
+        <th>Min</th>
+      </tr>
+    </thead>
+    <tbody>
+      {actualValues.map((actualValue) => {
+        const { TimeStamp, Values } = actualValue; // Fix the property name here
+        const qMasterLimitValue = sectionDetails[0]?.QMaster?.QMasterLimitValuesList[0];
+
+        if (qMasterLimitValue) {
+          const max = qMasterLimitValue.CommandValue + qMasterLimitValue.UpperLimitValue;
+          const min = qMasterLimitValue.CommandValue -(qMasterLimitValue.UpperLimitValue);
+          const value = Values[0]; // Get the first object from Values array
+
+          const isMaxViolation = value.Max > max;
+          const isMinViolation = value.Min < min;
+
+          return (
+            <tr style={{ color: isMaxViolation || isMinViolation ? "red" : "black" }} key={`${TimeStamp}_first`}>
+              <td>{actualValue.TimeStamp}</td>
+              <td>{qMasterLimitValue.ViolationType}</td>
+              <td>{max}</td>
+              <td>{min}</td>
+              <td>{value.Max}</td>
+              <td>{value.Min}</td>
+            </tr>
+          );
+        } else {
+          return <span>No data</span>;
         }
-        const wireText = `${name.split(" ")[2]} (${lengthStat.Value}m, ${value}${unit}, ${volumeStat.Value}mm³)`;
-        return (
-          <Col md={4} key={index}>
-            <div className="rounded bg-light p-3 d-block" style={{border:"1px solid #dee2e6"}}>
-              <div>Wire consumption</div>
-              <div>{wireText}</div>
-            </div>
-          </Col>
-        );
-      } else {
-        return (
-          <Col md={4} key={index}>
-            <div className="rounded bg-light p-3 d-block" style={{border:"1px solid #dee2e6"}}>
-              <div>{name}</div>
-              <div>{value} {unit}</div>
-            </div>
-          </Col>
-        );
-      }
-    }
-  })}
-      
-
-            
+      })}
+    </tbody>
+  </table>
+</div>
 
             </Row>
             <Row>
             </Row>
             <Row>
-              {/*<div>
-                <table>
+              <div>
+                {/* <table>
                   <thead>
                     <tr>
                       <th>Violation Type</th>
@@ -289,7 +343,7 @@ function Content({ toggle, isOpen }) {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table> */}
                 <h2>Stats</h2>
                 <table>
                   <thead>
@@ -333,7 +387,10 @@ function Content({ toggle, isOpen }) {
                   </thead>
                   <tbody>{singleStats}</tbody>
                 </table>
-                <Table striped bordered hover>
+
+              
+
+                {/* <Table striped bordered hover>
                   <thead>
                     <tr>
                       <th>TimeStamp</th>
@@ -354,57 +411,57 @@ function Content({ toggle, isOpen }) {
                       </tr>
                     ))}
                   </tbody>
-                </Table>
+                </Table> */}
 
-                 <table>
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Current</th>
-            <th>Voltage</th>
-            <th>Wire Feed Speed</th>
-            <th>Welding Duration</th>
-            <th>Energy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {actualValues.Values && actualValues.Values.map(value => (
-            <tr key={value.TimeStamp}>
-              <td>{value.TimeStamp}</td>
-              <td style={value.Values[0].Max > currentMax ? { color: 'red' } : {}}>{value.Values[0].Max}</td>
-              <td>{value.Values[1].Max}</td>
-              <td>{value.Values[2].Max}</td>
-              <td>{value.Values[3].Max}</td>
-              <td>{value.Values[4].Max}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <table>
-        <thead>
-          <tr>
-            <th>Violation Type</th>
-            <th>Command Value</th>
-            <th>Lower Limit Value</th>
-            <th>Upper Limit Value</th>
-            <th>Violation Level</th>
-          </tr>
-        </thead>
-        <tbody>
-          {actualValues.QMasterLimitValuesList && actualValues.QMasterLimitValuesList.filter(item => item.ViolationType === 'Current').map(item => (
-            <tr key={item.ViolationType}>
-              <td>{item.ViolationType}</td>
-              <td>{item.CommandValue}</td>
-              <td>{item.LowerLimitValue}</td>
-              <td>{item.UpperLimitValue}</td>
-              <td>{item.ViolationLevel}</td>
-            </tr>
-          ))}
-        </tbody>
-        {currentMax} {currentMin}
-        
-      </table> 
-              </div>*/}
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Current</th>
+                      <th>Voltage</th>
+                      <th>Wire Feed Speed</th>
+                      <th>Welding Duration</th>
+                      <th>Energy</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {actualValues.Values && actualValues.Values.map(value => (
+                      <tr key={value.TimeStamp}>
+                        <td>{value.TimeStamp}</td>
+                        <td style={value.Values[0].Max > currentMax ? { color: 'red' } : {}}>{value.Values[0].Max}</td>
+                        <td>{value.Values[1].Max}</td>
+                        <td>{value.Values[2].Max}</td>
+                        <td>{value.Values[3].Max}</td>
+                        <td>{value.Values[4].Max}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Violation Type</th>
+                      <th>Command Value</th>
+                      <th>Lower Limit Value</th>
+                      <th>Upper Limit Value</th>
+                      <th>Violation Level</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {actualValues.QMasterLimitValuesList && actualValues.QMasterLimitValuesList.filter(item => item.ViolationType === 'Current').map(item => (
+                      <tr key={item.ViolationType}>
+                        <td>{item.ViolationType}</td>
+                        <td>{item.CommandValue}</td>
+                        <td>{item.LowerLimitValue}</td>
+                        <td>{item.UpperLimitValue}</td>
+                        <td>{item.ViolationLevel}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  {currentMax} {currentMin}
+
+                </table>
+              </div>
             </Row>
             <Row className="mt-5 d-flex justify-content-end">
 
