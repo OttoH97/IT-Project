@@ -135,7 +135,8 @@ function Content({ toggle, isOpen }) {
 
           // Get the actual values for the weld
           const actualValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldId}/ActualValues`);
-          const actualValues = actualValuesResponse.data.ActualValues;
+          //const actualValues = actualValuesResponse.data.ActualValues;
+          const actualValues = actualValuesResponse.data.ActualValues.filter(av => av.Name === 'I' || av.Name === 'U' || av.Name === 'Wfs');
 
           let startIndex = 0;
           while (startIndex > actualValues.length && actualValues[startIndex].TimeStamp > totalDuration) {
@@ -143,7 +144,7 @@ function Content({ toggle, isOpen }) {
           }
 
           // Check if the actual values for this section violate the limit values
-          for (let j = startIndex; j < actualValues.length; j++) {
+          for (let j = 0; j < actualValues.length; j++) {
             const actualValue = actualValues[j];
 
             for (let l = 0; l < actualValue.Values.length; l++) {
