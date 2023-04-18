@@ -80,7 +80,7 @@ function Content({ toggle, isOpen }) {
     fetchData();
   }, [pageNumber, pageSize, filter]);
 
-  // Haetaan weldin actualvalues ja lasketaan paikka missä LimitViolation
+  // Haetaan weldin actualvalues ja lasketaan paikka missÃ¤ LimitViolation
   const handleToggle = async (weldId) => {
     const positionBySection = [];
     
@@ -91,71 +91,65 @@ function Content({ toggle, isOpen }) {
       //const sections = weldDetailsResponse.data.WeldData.Sections;
       const sectionNumbers = weldDetailsResponse.data.WeldData.Sections.map(section => section.Number);
       console.log(sectionNumbers);
-
+      console.log(weldDetailsResponse.data);
       //console.log(sections);
     
       // Loop through each section to get the limit values
-      for (let i = 0; i < sectionNumbers.length; i++) {
-        const sectionNumber = sectionNumbers[i];
-        const sectionDetailsResponse = await axios.get(`http://localhost:4000/welds/${weldId}/Sections`);
-        const sectionDetails = sectionDetailsResponse.data;
-        const section = sectionDetails.find(section => section.SectionNumber === sectionNumber);
-        const limitValues = section.QMaster.QMasterLimitValuesList[0];
-        console.log(limitValues);
-
-        const sections = sectionDetailsResponse.data.Sections;
-        console.log(sectionDetails);
-        for (const section of sectionDetails) {
-          const qMaster = section.QMaster;
-          // do something with qMaster object
-          //console.log(qMaster);
-          const activeQMasterList = [];
-
-          for (let i = 0; i < qMaster.QMasterLimitValuesList.length; i++) {
-            const qMasterItem = qMaster.QMasterLimitValuesList[i];
-            
-            if (qMasterItem.IsActive) {
-              activeQMasterList.push(qMasterItem);
-            }
-          }
+for (let i = 0; i < sectionNumbers.length; i++) {
+  const sectionNumber = sectionNumbers[i];
+  const sectionDetailsResponse = await axios.get(`http://localhost:4000/welds/${weldId}/Sections`);
+  var sectionDetails = sectionDetailsResponse.data;
   
-          console.log(activeQMasterList);
-        }
+  const section = sectionDetails.find(section => section.SectionNumber === sectionNumber);
 
-      // for (const section of sections) {
-      //   const qMasterLimitValues = section.QMaster.QMasterLimitValuesList;
+  // Check if QMaster exists in section
+  if (section.QMaster) {
+    const limitValues = section.QMaster;
 
-      //   for (const limitValue of qMasterLimitValues) {
-      //     if (
-      //       ["Current", "Voltage", "WireFeedSpeed"].includes(limitValue.ViolationType) &&
-      //       limitValue.IsActive
-      //     ) {
-      //       // Do something here if the limit value is active and its type is one we care about
-      //       console.log(`Limit value ${limitValue.ViolationType} is active in section ${section.Number}`);
-      //     }
-      //   }
-      // }
-  
-        // Get the actual values for the weld
-        const actualValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldId}/ActualValues`);
-        const actualValues = actualValuesResponse.data.ActualValues;
-  
-        // Check if the actual values for this section violate the limit values
-        for (let j = 0; j < actualValues.length; j++) {
-          const actualValue = actualValues[j];
-          const actualMax = actualValue.Values[0].Max;
-          const actualMin = actualValue.Values[0].Min;
-          const timestampInSeconds = actualValue.TimeStamp;
-  
-          if (actualMax > limitValues.UpperLimitValue || actualMin < limitValues.LowerLimitValue) {
-            const positionInMillimeters = timestampInSeconds * 10; // Replace with your calculation to convert timestamp to millimeters
-            positionBySection.push({ sectionNumber, positionInMillimeters });
-            break;
-          }
-        }
+    const QMasterLimitValuesList = limitValues.QMasterLimitValuesList;
+    const violationTypes = QMasterLimitValuesList.map((limitvalue) => ({
+      violationType: limitvalue.ViolationType,
+      lowerLimit: limitvalue.LowerLimitValue,
+      upperlimit: limitvalue.UpperLimitValue,
+    }));
+
+    console.log(violationTypes);
+    // Get the actual values for the weld
+    const actualValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldId}/ActualValues`);
+    const actualValues = actualValuesResponse.data.ActualValues;
+
+    console.log(actualValues);
+    // Check if the actual values for this section violate the limit values
+    for(let i = 0; i < violationTypes.length; i++){
+      const violationType = violationTypes[i];
+    
+    for (let j = 0; j < actualValues.length; j++) {
+      const actualValue = actualValues[j];
+      const actualMax = actualValue.Values[0].Max;
+      const actualMin = actualValue.Values[0].Min;
+      const timestampInSeconds = actualValue.TimeStamp;
+
+      console.log(actualValue);
+      console.log('MAXIMI',actualMax);
+      console.log('MINIMI',actualMin);
+      //console.log(violationTypes.upperlimit);
+
+      if (actualMax > violationType.upperlimit || actualMin < violationType.lowerLimit) {
+        const positionInMillimeters = timestampInSeconds * 10; // Replace with your calculation to convert timestamp to millimeters
+        positionBySection.push({ sectionNumber, positionInMillimeters, violationType: violationType.violationType });
+        console.log('Violation detected in section', sectionNumber, 'for',violationType.violationType, 'at position', positionInMillimeters);
+        break;
       }
-  
-      console.log(positionBySection);
+    }
+  }
+  } else {
+    // QMaster does not exist in section, do something else
+    console.log('QMaster does not exist in section');
+    continue;
+  }
+}
+
+console.log(positionBySection);
       // Do whatever you want with the positionBySection array
     } catch (error) {
       console.log(error);
@@ -290,7 +284,7 @@ function Content({ toggle, isOpen }) {
         if (!lengthStat || !volumeStat) {
           return null; // missing stats, skip
         }
-        const wireText = `${name.split(" ")[2]} (${lengthStat.Value}m, ${value}${unit}, ${volumeStat.Value}mm³)`;
+        const wireText = `${name.split(" ")[2]} (${lengthStat.Value}m, ${value}${unit}, ${volumeStat.Value}mmÂ³)`;
         return (
           <Col md={3} key={index}>
             <div className="rounded bg-light p-3 d-block" style={{border:"1px solid #dee2e6"}}>
