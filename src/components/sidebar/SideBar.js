@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faDashboard,faEnvelope,faTimes} from "@fortawesome/free-solid-svg-icons";
+import {faDashboard,faEnvelope,faLink,faTimes} from "@fortawesome/free-solid-svg-icons";
 import { Nav, Button, Image, Badge } from "react-bootstrap";
 import {LinkContainer} from 'react-router-bootstrap'
 import classNames from "classnames";
@@ -24,7 +24,7 @@ const Sidebar = ({ toggle, isOpen }) => {
         </LinkContainer>
 
         <LinkContainer to='/' onClick={toggle}>
-        <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faDashboard} className="me-2" />Dashboard</Nav.Link>
+          <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faDashboard} className="me-2" />Dashboard</Nav.Link>
         </LinkContainer>
 
         <LinkContainer to='/mail'>
@@ -32,7 +32,15 @@ const Sidebar = ({ toggle, isOpen }) => {
         </LinkContainer>
         
         <LinkContainer to='/mail' onClick={toggle}>
-        <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faEnvelope} className="me-2" />Mail List</Nav.Link>
+          <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faEnvelope} className="me-2" />Mail List</Nav.Link>
+        </LinkContainer>
+
+        <LinkContainer style={{position:"absolute",top:"72%",left:"0"}} to='http://weldcube.ky.local/Home/Dashboard'>
+          <Nav.Link className="text-secondary d-none d-sm-block"><FontAwesomeIcon icon={faLink} className="me-2" style={{fontSize:"12px"}} />WeldCube</Nav.Link>
+        </LinkContainer>
+
+        <LinkContainer to='http://weldcube.ky.local/Home/Dashboard' onClick={toggle}>
+          <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faLink} className="me-2" />WeldCube</Nav.Link>
         </LinkContainer>
       </Nav>
       </div>
