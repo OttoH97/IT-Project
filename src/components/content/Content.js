@@ -102,11 +102,12 @@ function Content({ toggle, isOpen }) {
         let totalDuration = 0.0;
         var duration = Number(section.SingleValueStats[5].Value);
         durations.push(duration);
-        console.log(durations);
+        //console.log(durations);
         durations.forEach(value => {
           totalDuration += value;
         });
-        console.log(totalDuration.toFixed(1));
+        //console.log(totalDuration.toFixed(1));
+        //console.log((totalDuration - durations.slice(-1)).toFixed(1));
 
         const activeQMasterList = [];
 
@@ -128,7 +129,7 @@ function Content({ toggle, isOpen }) {
             }
           }
         }
-        console.log(activeQMasterList);
+        //console.log(activeQMasterList);
 
         if (activeQMasterList.length == 0) {
             continue;
@@ -157,13 +158,12 @@ function Content({ toggle, isOpen }) {
               // console.log(durations.slice(-1));
               // console.log(totalDuration - durations.slice(-1));
 
-              if(actualByName.TimeStamp > totalDuration - durations.slice(-1)) {
-                await new Promise((resolve, reject) => {
+                if(actualByName.TimeStamp > (totalDuration - durations.slice(-1)).toFixed(1)) {
                   for (let k = 0; k < activeQMasterList.length; k++) {
                     const limitValues = activeQMasterList[k];
                     const weldSpeed = weldDetailsResponse.data.WeldData.Stats[4].Mean;
                     const TimeStamp = actualByName.TimeStamp;
-          
+            
                     if (limitValues.violationType === 'Current' && actualByName.Name === 'I' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
                       const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
                       positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Current' });
@@ -180,13 +180,11 @@ function Content({ toggle, isOpen }) {
                       continue;
                     }
                   }
-                  reject(new Error("No matching limit value found"));
-                });
-              }
-            }
-          }
-        }
-      }
+               }
+           }
+         }
+       }
+     }
   
       console.log(positionBySection);
       // Do whatever you want with the positionBySection array
