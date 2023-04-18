@@ -137,11 +137,6 @@ function Content({ toggle, isOpen }) {
           const actualValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldId}/ActualValues`);
           const actualValues = actualValuesResponse.data.ActualValues;
 
-          let startIndex = 0;
-          while (startIndex > actualValues.length && actualValues[startIndex].TimeStamp > totalDuration) {
-            startIndex++;
-          }
-
           // Check if the actual values for this section violate the limit values
           for (let j = 0; j < actualValues.length; j++) {
             const actualValue = actualValues[j];
@@ -158,26 +153,34 @@ function Content({ toggle, isOpen }) {
                 Section: sectionNumber
               }
               values.push(actualByName);
+              
+              // Filter the values array to only include values with timestamps greater than totalDuration
+              const filteredValues = values.filter(value => value.TimeStamp > totalDuration);
+
 
               for (let k = 0; k < activeQMasterList.length; k++) {
                 const limitValues = activeQMasterList[k];
                 const weldSpeed = weldDetailsResponse.data.WeldData.Stats[4].Mean;
                 const TimeStamp = actualByName.TimeStamp;
-      
-                if (limitValues.violationType === 'Current' && actualByName.Name === 'I' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
-                  const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
-                  positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Current' });
-                  break;
-                } else if (limitValues.violationType === 'Voltage' && actualByName.Name === 'U' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
-                  const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
-                  positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Voltage' });
-                  break;
-                } else if (limitValues.violationType === 'WireFeedSpeed' && actualByName.Name === 'Wfs' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
-                  const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
-                  positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'WireFeedSpeed' });
-                  break;
-                } else {
-                  continue;
+
+                for (let i = 0; i < filteredValues.length; i++) {
+                    const actualValue = filteredValues[i];
+        
+                    if (limitValues.violationType === 'Current' && actualValue.Name === 'I' && (actualValue.actualMax > limitValues.upperLimitValue || actualValue.actualMin < limitValues.lowerLimitValue)) {
+                      const positionInMillimeters = (actualValue.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
+                      positionBySection.push({ sectionNumber: sectionNumber, TimeStamp: actualValue.TimeStamp, positionInMillimeters, violationType: 'Current' });
+                      break;
+                    } else if (limitValues.violationType === 'Voltage' && actualValue.Name === 'U' && (actualValue.actualMax > limitValues.upperLimitValue || actualValue.actualMin < limitValues.lowerLimitValue)) {
+                      const positionInMillimeters = (actualValue.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
+                      positionBySection.push({ sectionNumber: sectionNumber, TimeStamp: actualValue.TimeStamp, positionInMillimeters, violationType: 'Voltage' });
+                      break;
+                    } else if (limitValues.violationType === 'WireFeedSpeed' && actualValue.Name === 'Wfs' && (actualValue.actualMax > limitValues.upperLimitValue || actualValue.actualMin < limitValues.lowerLimitValue)) {
+                      const positionInMillimeters = (actualValue.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
+                      positionBySection.push({ sectionNumber: sectionNumber, TimeStamp: actualValue.TimeStamp, positionInMillimeters, violationType: 'WireFeedSpeed' });
+                      break;
+                    } else {
+                      continue;
+                    }
                 }
               }
             }
