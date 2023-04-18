@@ -123,13 +123,14 @@ function Content({ toggle, isOpen }) {
                 violationType: qMasterItem.ViolationType,
                 commandValue: qMasterItem.CommandValue,
                 lowerLimitValue: qMasterItem.LowerLimitValue + qMasterItem.CommandValue,
-                upperLimitValue: qMasterItem.UpperLimitValue + qMasterItem.CommandValue
+                upperLimitValue: qMasterItem.UpperLimitValue + qMasterItem.CommandValue, 
+                deviationTime: qMasterItem.DeviationTime
               };
               activeQMasterList.push(limitValues);
             }
           }
         }
-        //console.log(activeQMasterList);
+        console.log(activeQMasterList);
 
         if (activeQMasterList.length == 0) {
             continue;
