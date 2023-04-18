@@ -35,7 +35,7 @@ const Sidebar = ({ toggle, isOpen }) => {
           <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faEnvelope} className="me-2" />Mail List</Nav.Link>
         </LinkContainer>
 
-        <LinkContainer style={{position:"absolute",top:"72%",left:"0"}} to='http://weldcube.ky.local/Home/Dashboard'>
+        <LinkContainer to='http://weldcube.ky.local/Home/Dashboard'>
           <Nav.Link className="text-secondary d-none d-sm-block"><FontAwesomeIcon icon={faLink} className="me-2" style={{fontSize:"12px"}} />WeldCube</Nav.Link>
         </LinkContainer>
 
