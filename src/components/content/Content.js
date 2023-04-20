@@ -106,7 +106,7 @@ function Content({ toggle, isOpen }) {
         durations.forEach(value => {
           totalDuration += value;
         });
-        //console.log(totalDuration.toFixed(1));
+        console.log(totalDuration.toFixed(1));
         //console.log((totalDuration - durations.slice(-1)).toFixed(1));
 
         const activeQMasterList = [];
@@ -135,19 +135,19 @@ function Content({ toggle, isOpen }) {
             console.log(`Section ${sectionNumber} doesn't have an active QMaster`);
             continue;
         } else {
-
+          console.log(activeQMasterList);
         }
-        console.log(activeQMasterList);
 
           // Get the actual values for the weld
           const actualValuesResponse = await axios.get(`http://localhost:4000/api/v4/Welds/${weldId}/ActualValues`);
           const actualValues = actualValuesResponse.data.ActualValues;
-          const deviationCounter = [];
 
 
           // Check if the actual values for this section violate the limit values
           for (let j = 0; j < actualValues.length; j++) {
             const actualValue = actualValues[j];
+            const deviationCounter = [];
+            let totalDeviation = 0.0;
 
             for (let l = 0; l < actualValue.Values.length; l++) {
               const actualMax = actualValue.Values[l].Max;
@@ -159,36 +159,43 @@ function Content({ toggle, isOpen }) {
                 Name: actualValue.Values[l].Name, 
                 Section: sectionNumber
               }
-              deviationCounter.push(actualByName);
+              deviationCounter.push(actualByName.TimeStamp);
+              deviationCounter.forEach(value => {
+                totalDeviation += 0.1;
+              });
+              console.log(totalDeviation.toFixed(1));
               // console.log(durations);
               // console.log(durations.slice(-1));
               // console.log(totalDuration - durations.slice(-1));
 
             if(actualByName.TimeStamp > (totalDuration - durations.slice(-1)).toFixed(1)) {
-              if(deviationCounter.length < 5) {
-                continue;
-              } else {
                 for (let k = 0; k < activeQMasterList.length; k++) {
                   const limitValues = activeQMasterList[k];
                   const weldSpeed = weldDetailsResponse.data.WeldData.Stats[4].Mean;
                   const TimeStamp = actualByName.TimeStamp;
-                  if (limitValues.violationType === 'Current' && actualByName.Name === 'I' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
-                    const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
-                    positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Current' });
-                    break;
-                  } else if (limitValues.violationType === 'Voltage' && actualByName.Name === 'U' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
-                    const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
-                    positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Voltage' });
-                    break;
-                  } else if (limitValues.violationType === 'WireFeedSpeed' && actualByName.Name === 'Wfs' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
-                    const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
-                    positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'WireFeedSpeed' });
-                    break;
+                  if((totalDeviation.toFixed(1) > limitValues.deviationTime) == true) {
+                    if (limitValues.violationType === 'Current' && actualByName.Name === 'I' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
+                      const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
+                      positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Current' });
+                      deviationCounter.length = 0;
+                      break;
+                    } else if (limitValues.violationType === 'Voltage' && actualByName.Name === 'U' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
+                      const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
+                      positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Voltage' });
+                      deviationCounter.length = 0;
+                      break;
+                    } else if (limitValues.violationType === 'WireFeedSpeed' && actualByName.Name === 'Wfs' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue)) {
+                      const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
+                      positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'WireFeedSpeed' });
+                      deviationCounter.length = 0;
+                      break;
+                    } else {
+                      continue;
+                    }
                   } else {
                     continue;
                   }
                 }
-              }
             }              
            }
          }
