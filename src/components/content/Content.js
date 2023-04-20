@@ -164,36 +164,36 @@ function Content({ toggle, isOpen }) {
               deviationCounter.forEach(value => {
                 totalDeviation += 0.1;
               });
-              //console.log(totalDeviation.toFixed(1));
+              // console.log(totalDeviation.toFixed(1));
               // console.log(durations);
               // console.log(durations.slice(-1));
               // console.log(totalDuration - durations.slice(-1));
 
             if(actualByName.TimeStamp > (totalDuration - durations.slice(-1)).toFixed(1)) {
-                for (let k = 0; k < activeQMasterList.length; k++) {
-                  const limitValues = activeQMasterList[k];
-                  const weldSpeed = weldDetailsResponse.data.WeldData.Stats[4].Mean;
-                  const TimeStamp = actualByName.TimeStamp;
-                    if (limitValues.violationType === 'Current' && actualByName.Name === 'I' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue) && (Number(totalDeviation.toFixed(1)) > limitValues.deviationTime) == true) {
-                      const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
-                      positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Current' });
-                      console.log("CURRENT");
-                      deviationCounter.length = 0;
-                      break;
-                    } else if (limitValues.violationType === 'Voltage' && actualByName.Name === 'U' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue) && (Number(totalDeviation.toFixed(1)) > limitValues.deviationTime) == true) {
-                      const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
-                      positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Voltage' });
-                      console.log("VOLTAGE");
-                      deviationCounter.length = 0;
-                      break;
-                    } else if (limitValues.violationType === 'WireFeedSpeed' && actualByName.Name === 'Wfs' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue) && (Number(totalDeviation.toFixed(1)) > limitValues.deviationTime) == true) {
-                      const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
-                      positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'WireFeedSpeed' });
-                      console.log("WFS");
-                      deviationCounter.length = 0;
-                      break;
-                    }
+              for (let k = 0; k < activeQMasterList.length; k++) {
+                const limitValues = activeQMasterList[k];
+                const weldSpeed = weldDetailsResponse.data.WeldData.Stats[4].Mean;
+                const TimeStamp = actualByName.TimeStamp;
+                if (limitValues.violationType === 'Current' && actualByName.Name === 'I' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue) && (Number(totalDeviation.toFixed(1)) >= limitValues.deviationTime) == true) {
+                  const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
+                  positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Current' });
+                  console.log("CURRENT");
+                  deviationCounter.length = 0;
+                  break;
+                } else if (limitValues.violationType === 'Voltage' && actualByName.Name === 'U' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue) && (Number(totalDeviation.toFixed(1)) >= limitValues.deviationTime) == true) {
+                  const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
+                  positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'Voltage' });
+                  console.log("VOLTAGE");
+                  deviationCounter.length = 0;
+                  break;
+                } else if (limitValues.violationType === 'WireFeedSpeed' && actualByName.Name === 'Wfs' && (actualByName.actualMax > limitValues.upperLimitValue || actualByName.actualMin < limitValues.lowerLimitValue) && (Number(totalDeviation.toFixed(1)) >= limitValues.deviationTime) == true) {
+                  const positionInMillimeters = (actualByName.TimeStamp / 60) * (weldSpeed * 10); // Replace with your calculation to convert timestamp to millimeters
+                  positionBySection.push({ sectionNumber: sectionNumber, TimeStamp, positionInMillimeters, violationType: 'WireFeedSpeed' });
+                  console.log("WFS");
+                  deviationCounter.length = 0;
+                  break;
                 }
+              }
             }              
            }
          }
