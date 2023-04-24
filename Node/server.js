@@ -308,33 +308,29 @@ app.get('/welds/:weldId/Sections', async (req, res) => {
     const sectionDetails = [];
     let previousDuration = 0;
 
+    // Include ActualValues array from the additional API endpoint
+    const actualValuesUrl = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
+    const actualValuesResponse = await axios.get(actualValuesUrl, { headers });
+    const actualValues = actualValuesResponse.data.ActualValues;
+
     for (let i = 0; i < sections.length; i++) {
       const sectionNumber = sections[i].SectionNumber;
       const sectionUrl = sections[i].Details.replace('{sectionid}', sectionNumber);
       const sectionResponse = await axios.get(sectionUrl, { headers });
       const sectionData = sectionResponse.data;
 
-      // Include ActualValues array from the additional API endpoint
-      const actualValuesUrl = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
-      const actualValuesResponse = await axios.get(actualValuesUrl, { headers });
-      const actualValues = actualValuesResponse.data.ActualValues;
-
-      // Check if any SectionDetails.SingleValueStats[5].Value is 0 and skip section
-      if (sectionData.SingleValueStats.some(stats => stats.Value === 0)) {
-        sectionData.ActualValues = [];
-        sectionDetails.push(sectionData);
-        previousDuration = sectionData.SingleValueStats[5].Value;
-        break;
+      // Skip section if QMaster is not found
+      if (sectionData.SingleValueStats[5].Value === "0") {
+        i - 1;
+        continue;
       }
 
       // Filter ActualValues array based on TimeStamp value
       const filteredActualValues = actualValues.filter(value => {
-        // If SectionDetails[0].SingleValueStats[5].Value is 0, use earlier section's data for comparison
-        if (i === 0 && sectionData.SingleValueStats[5].Value === 0) {
-          return value.TimeStamp > sections[i - 1].SingleValueStats[5].Value &&
-                 value.TimeStamp <= sectionData.SingleValueStats[5].Value;
+        if (i === 0) {
+          return value.TimeStamp < sectionData.SingleValueStats[5].Value;
         } else {
-          return value.TimeStamp <= sectionData.SingleValueStats[5].Value;
+          return value.TimeStamp < sectionData.SingleValueStats[5].Value;
         }
       });
 
@@ -342,8 +338,9 @@ app.get('/welds/:weldId/Sections', async (req, res) => {
       sectionDetails.push(sectionData);
     }
 
-    // Create a new object with SectionDetails
+    // Create a new object with SectionDetails and ActualValues
     const result = {
+      ActualValues: actualValues,
       SectionDetails: sectionDetails
     };
 

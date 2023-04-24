@@ -45,6 +45,11 @@ function Content({ toggle, isOpen }) {
   const [explanation, setExplanation] = useState('');
   const [id, setId] = useState('');
 
+  let currentSectionIndex = 0;
+let currentSectionColor = "blue"; // or any other initial color you want
+let lastActualValueIndex = 0;
+
+
   // Modal
   const [show, setShow] = useState(false);
   const hideModal = () => setShow(false);
@@ -54,6 +59,15 @@ function Content({ toggle, isOpen }) {
     const element = document.getElementById(id);
     element.scrollIntoView({ behavior: "smooth" });
   };
+
+  function getRandomColor() {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
   
 
   // Haetaan yleiset statiikat
@@ -285,33 +299,61 @@ function Content({ toggle, isOpen }) {
       </tr>
     </thead>
     <tbody>
-      {actualValues.map((actualValue) => {
-        const { TimeStamp, Values } = actualValue; // Fix the property name here
-        const qMasterLimitValue = sectionDetails[0]?.QMaster?.QMasterLimitValuesList[0];
+  {sectionDetails.map((section, sectionIndex) => {
+    const { SingleValueStats } = section;
+    const sectionEndTime = SingleValueStats[5].Value;
+    let colorChanged = false;
 
-        if (qMasterLimitValue) {
-          const max = qMasterLimitValue.CommandValue + qMasterLimitValue.UpperLimitValue;
-          const min = qMasterLimitValue.CommandValue -(qMasterLimitValue.UpperLimitValue);
-          const value = Values[0]; // Get the first object from Values array
+    return section.ActualValues.map((actualValue, actualValueIndex) => {
+      const { TimeStamp, Values } = actualValue;
+      const qMasterLimitValue = section.QMaster?.QMasterLimitValuesList[0];
 
-          const isMaxViolation = value.Max > max;
-          const isMinViolation = value.Min < min;
+      if (qMasterLimitValue) {
+        const max = qMasterLimitValue.CommandValue + qMasterLimitValue.UpperLimitValue;
+        const min = qMasterLimitValue.CommandValue - qMasterLimitValue.UpperLimitValue;
+        const value = Values[0]; // Get the first object from Values array
 
-          return (
-            <tr style={{ color: isMaxViolation || isMinViolation ? "red" : "black" }} key={`${TimeStamp}_first`}>
-              <td>{actualValue.TimeStamp}</td>
-              <td>{qMasterLimitValue.ViolationType}</td>
-              <td>{max}</td>
-              <td>{min}</td>
-              <td>{value.Max}</td>
-              <td>{value.Min}</td>
-            </tr>
-          );
+        const isMaxViolation = value.Max > max;
+        const isMinViolation = value.Min < min;
+
+        // Check if current actual value is within the current section
+        if (TimeStamp <= sectionEndTime) {
+          if (!colorChanged) {
+            // Set color for this section
+            colorChanged = true;
+            return (
+              <tr style={{ color: isMaxViolation || isMinViolation ? "red" : "black" }} key={`${TimeStamp}_${actualValueIndex}`}>
+                <td>{actualValue.TimeStamp}</td>
+                <td>{qMasterLimitValue.ViolationType}</td>
+                <td>{max}</td>
+                <td>{min}</td>
+                <td>{value.Max}</td>
+                <td>{value.Min}</td>
+              </tr>
+            );
+          } else {
+            // Return row without setting color (since color was already set for this section)
+            return (
+              <tr key={`${TimeStamp}_${actualValueIndex}`}>
+                <td>{actualValue.TimeStamp}</td>
+                <td>{qMasterLimitValue.ViolationType}</td>
+                <td>{max}</td>
+                <td>{min}</td>
+                <td>{value.Max}</td>
+                <td>{value.Min}</td>
+              </tr>
+            );
+          }
         } else {
-          return <span>No data</span>;
+          // Move to next section since current actual value is outside current section
+          return null;
         }
-      })}
-    </tbody>
+      } else {
+        return <span>No data</span>;
+      }
+    });
+  })}
+</tbody>
   </table>
 </div>
 
