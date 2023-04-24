@@ -14,6 +14,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             Previous
           </button>
         </li>
+        <li className="page-item disabled">
+      <a className="page-link">{currentPage}/{totalPages}</a>
+    </li>
         <li className={`page-item${currentPage === totalPages ? ' disabled' : ''}`}>
           <button className="page-link" onClick={() => {onPageChange(currentPage + 1); handleClick()}}>
             Next

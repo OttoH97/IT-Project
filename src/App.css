@@ -175,6 +175,9 @@ li a.dropdown-toggle::after {
   border: none;
   box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
 }
+.modal-title {
+  line-height: 15px !important;
+}
 
 .list-group-item {
   border: solid #f2f2f2;
@@ -202,12 +205,14 @@ li a.dropdown-toggle::after {
   padding: 20px;
   margin-left: 0;
   height: 100vh;
+  transition: all 0.5s;
 }
 
 .mail {
   padding: 20px;
   margin-left: 0;
   height: 100vh;
+  transition: all 0.5s;
 }
 
 .card {
@@ -216,11 +221,8 @@ li a.dropdown-toggle::after {
   box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
 }
 
-@media only screen and (max-width: 575.98px) {
-  body {
-    overflow:  hidden;
-  }
-  
+@media only screen and (max-width: 750px) {
+
   .content.is-open {
     /*margin-left: 100%;*/
     display: none;
@@ -253,8 +255,38 @@ li a.dropdown-toggle::after {
   
 }
 
-.test {
-  background-color: red;
+.pulsate {
+  animation: pulsate 2s ease-out;
+  animation-iteration-count: infinite;
+  -webkit-animation: pulsate 2s ease-out;
+  -webkit-animation-iteration-count: infinite; 
+  opacity: 0.3;
+  color: #7e899b;
 }
+@-webkit-keyframes pulsate {
+  0% { 
+      opacity: 0.3;
+  }
+  50% { 
+      opacity: 1.0;
+  }
+  100% { 
+      opacity: 0.3;
+  }
+}
+@keyframes pulsate {
+  0% { 
+      opacity: 0.3;
+  }
+  50% { 
+      opacity: 1.0;
+  }
+  100% { 
+      opacity: 0.3;
+  }
+}
+
+
+
 
 

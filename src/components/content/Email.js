@@ -112,7 +112,7 @@ function Email({ toggle, isOpen }) {
 
   return (
 
-    <Container style={isOpen ? { width: "1000px", marginLeft: "270px" } : { width: "1000px" }} fluid className={classNames("contenmailt", { "is-open": isOpen })}>
+    <Container style={isOpen ? { width: "1000px", marginLeft: "270px" } : { width: "1000px" }} fluid className={classNames("mail", { "is-open": isOpen })}>
       <ToastContainer
         className='toast-position'
         position="top-center"

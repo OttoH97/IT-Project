@@ -16,7 +16,7 @@ function App() {
 
   const updateWidth = () => {
     const width = window.innerWidth;
-    const widthLimit = 576;
+    const widthLimit = 750;
     const isMobile = width <= widthLimit;
     const wasMobile = previousWidth <= widthLimit;
 
