@@ -15,30 +15,21 @@ function Content({ toggle, isOpen }) {
   // Welds from weldcube API
   const [welds, setWelds] = useState([]);
 
-
-  const [firstObjectId, setFirstObjectId] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [pageSize, setPageSize] = useState(10);
   const [pageNumber, setPageNumber] = useState(1);
   const [filter, setFilter] = useState('all');
-  const [search, setSearch] = useState('');
 
-  const [totalCount, setTotalCount] = useState(0);
   const [totalOk, setTotalOk] = useState(0);
   const [totalNotOk, setTotalNotOk] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const [partToShow, setPartToShow] = useState([]);
   const [weldID, setWeldID] = useState('')
   const [weldDetailToShow, setWeldDetailToShow] = useState([])
 
-  // Actualvalues
-  const [actualValues, setActualValues] = useState([])
-  const [qMasterValues, setQMasterValues] = useState([])
-  const [violations, setViolations] = useState([]);
+  // Section details
   const [sectionDetails, setSectionDetails] = useState([]);
-  const [counterMap, setCounterMap] = useState({});
+
 
   const [activeKey, setActiveKey] = useState(null);
   const [explanation, setExplanation] = useState('');
@@ -53,7 +44,6 @@ function Content({ toggle, isOpen }) {
   useEffect(() => {
     axios.get(`http://localhost:4000/welds?pageSize=1`)
       .then(response => {
-        setTotalCount(response.data.totalCount);
         setTotalNotOk(response.data.totalNotOk);
         setTotalOk(response.data.totalOk);
 
@@ -86,7 +76,6 @@ function Content({ toggle, isOpen }) {
   const handleToggle = (id) => {
     axios.get(`http://localhost:4000/welds/${id}/Sections`)
       .then(response => {
-        setActualValues(response.data.ActualValues)
         setSectionDetails(response.data.SectionDetails)
       })
       .catch(error => {
@@ -98,10 +87,6 @@ function Content({ toggle, isOpen }) {
   function handlePageChange(page) {
     setPageNumber(page);
   }
-
-  const startIndex = pageNumber * pageSize;
-  const endIndex = startIndex + pageSize;
-  const currentItems = welds.slice(startIndex, endIndex);
 
   function formatTimestamp(timestamp) {
     const date = new Date(timestamp);
@@ -130,7 +115,7 @@ function Content({ toggle, isOpen }) {
 
   let rows = welds.map((weld, index) => {
     return (
-      <Accordion id={index} className="mt-3" onClick={() => { setWeldID(weld.Id); handleToggle(weld.Id); setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
+      <Accordion key={index} id={index} className="mt-3" onClick={() => { setWeldID(weld.Id); handleToggle(weld.Id); setWeldDetailToShow(weld) }} activeKey={activeKey} onSelect={handleAccordionClick}>
         <Accordion.Item eventKey={index} className="border-0 shadow-sm">
           <Accordion.Header>
             <Row className='align-items-center w-100' style={{ whiteSpace: "nowrap", overflow: "hidden" }}>

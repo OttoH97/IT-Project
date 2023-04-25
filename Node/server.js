@@ -72,7 +72,7 @@ app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶
    }*/
   for (const [name, email] of Object.entries(recipients)) {
     Mailoptions.to = email;
-    console.log(`Sending email to: ${name} (${email})`);
+    //console.log(`Sending email to: ${name} (${email})`);
     emailPromises.push(
       transporter.sendMail(Mailoptions)
         .then(info => console.log(`Message sent: ${name} (${email}): ${info.response}`))
@@ -201,7 +201,7 @@ app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
   const explanation = req.query.explanation;
   const user = req.query.user;
   const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState?explanation=${explanation}&user=${user}`;
-  console.log('url:', url);
+  //console.log('url:', url);
   const headers = {
     'api_key': process.env.MY_API_KEY,
     'Accept': 'application/json',
@@ -211,13 +211,13 @@ app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
   console.log('params:', explanation);
   try {
     const response = await axios.post(url, null, { params: null, headers });
-    console.log('response:', response.data);
+    //console.log('response:', response.data);
     res.send(response.data);
   } catch (error) {
     console.error(error);
-    console.log(error.response.data)
-    console.log(error.response.status)
-    console.log(error.response.headers)
+    //console.log(error.response.data)
+    //console.log(error.response.status)
+    //console.log(error.response.headers)
     res.status(500).send(error);
   }
 });
@@ -299,52 +299,22 @@ app.get('/welds/:weldId/Sections', async (req, res) => {
   const headers = {
     'api_key': process.env.MY_API_KEY,
     'Accept': 'application/json',
-    'Content-type': 'application/json'
+    'Content-type' : 'application/json'
   };
 
   try {
     const response = await axios.get(url, { headers });
     const sections = response.data.WeldData.Sections;
     const sectionDetails = [];
-    let previousDuration = 0;
-
-    // Include ActualValues array from the additional API endpoint
-    const actualValuesUrl = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
-    const actualValuesResponse = await axios.get(actualValuesUrl, { headers });
-    const actualValues = actualValuesResponse.data.ActualValues;
 
     for (let i = 0; i < sections.length; i++) {
-      const sectionNumber = sections[i].SectionNumber;
+      const sectionNumber = sections[i].Number;
       const sectionUrl = sections[i].Details.replace('{sectionid}', sectionNumber);
       const sectionResponse = await axios.get(sectionUrl, { headers });
-      const sectionData = sectionResponse.data;
-
-      // Skip section if QMaster is not found
-      if (sectionData.SingleValueStats[5].Value === "0") {
-        i - 1;
-        continue;
-      }
-
-      // Filter ActualValues array based on TimeStamp value
-      const filteredActualValues = actualValues.filter(value => {
-        if (i === 0) {
-          return value.TimeStamp < sectionData.SingleValueStats[5].Value;
-        } else {
-          return value.TimeStamp < sectionData.SingleValueStats[5].Value;
-        }
-      });
-
-      sectionData.ActualValues = filteredActualValues;
-      sectionDetails.push(sectionData);
+      sectionDetails.push(sectionResponse.data);
     }
 
-    // Create a new object with SectionDetails and ActualValues
-    const result = {
-      ActualValues: actualValues,
-      SectionDetails: sectionDetails
-    };
-
-    res.json(result);
+    res.json(sectionDetails);
   } catch (error) {
     console.error(error);
     res.status(500).send(error);
@@ -390,7 +360,6 @@ app.put('/emails', (req, res) => {
     // Update the emails property
     jsonData.emails = emails;
 
-    console.log(emails);
 
     // Write the updated data back to the emails.json file
     fs.writeFile('../src/components/content/emails.json', JSON.stringify(jsonData), 'utf8', (err) => {

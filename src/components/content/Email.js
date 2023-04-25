@@ -25,8 +25,6 @@ function Email({ toggle, isOpen }) {
       body: JSON.stringify({ emails }),
     })
       .then((response) => response.json())
-      .then((data) => console.log(data))
-      .catch((error) => console.log(error));
   }, [emails]);
 
 
