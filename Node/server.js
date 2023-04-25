@@ -29,7 +29,7 @@ const transporter = nodeMailer.createTransport({
     pass: process.env.EMAIL_PASS
   }
 });
-app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶postin lÃƒÂ¤hettÃƒÂ¤miselle
+app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÆ’Ã‚Â¤hkÃƒÆ’Ã‚Â¶postin lÃƒÆ’Ã‚Â¤hettÃƒÆ’Ã‚Â¤miselle
   const notOkWelds = req.body.notOkWelds;
   const recipients = JSON.parse(fs.readFileSync('../src/components/content/emails.json')); //alustetaan recipients lukemalla json tiedosto.
 
@@ -61,7 +61,7 @@ app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶
   };
 
   notOkWelds.forEach(weld => {
-    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//kÃƒÂ¤ydÃƒÂ¤ÃƒÂ¤n getistÃƒÂ¤ saadut notok hitsaukset lÃƒÂ¤pi
+    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//kÃƒÆ’Ã‚Â¤ydÃƒÆ’Ã‚Â¤ÃƒÆ’Ã‚Â¤n getistÃƒÆ’Ã‚Â¤ saadut notok hitsaukset lÃƒÆ’Ã‚Â¤pi
   });
 
   /* const filteredRecipients = {};
@@ -72,7 +72,7 @@ app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶
    }*/
   for (const [name, email] of Object.entries(recipients)) {
     Mailoptions.to = email;
-    //console.log(`Sending email to: ${name} (${email})`);
+    console.log(`Sending email to: ${name} (${email})`);
     emailPromises.push(
       transporter.sendMail(Mailoptions)
         .then(info => console.log(`Message sent: ${name} (${email}): ${info.response}`))
@@ -98,17 +98,17 @@ app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶
     });
 });
 
-setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃ¤lein. 
-  fetch('http://localhost:4000/welds')
+setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃƒÂ¤lein. 
+  fetch('http://localhost:4000/allwelds')
     .then(response => response.json())
     .then(data => {
-      // Do something with the data
+      
     })
     .catch(error => console.error(error));
-}, 36000000);// Tunnin vÃ¤lein
+}, 36000000);// Tunnin vÃƒÂ¤lein
 
 //////////////////////////////
-//Tässä haetaan kaikki hitsit
+//TÃ¤ssÃ¤ haetaan kaikki hitsit
 //////////////////////////////
 
 app.get('/welds', async (req, res) => {
@@ -175,9 +175,77 @@ app.get('/welds', async (req, res) => {
     res.status(500).send(error);
   }
 });
+app.get('/allwelds', async (req, res) => {
+  const url = 'http://weldcube.ky.local/api/v4/welds';
+  const headers = {
+    'api_key': process.env.MY_API_KEY,
+    'Accept': 'application/json'
+  };
+  
+  try {
+    const response = await fetch(url, { headers });
+    const data = await response.json();
+    console.log(data.WeldInfos[0].State);
 
+    const AllWelds = [data];
+    const notOkWelds = new Set();
+    
+    AllWelds.forEach(jsonObject => {
+      jsonObject.WeldInfos.forEach(weldInfo => {
+        const state = weldInfo.State;
+        const id = weldInfo.Id;
+        const stats = weldInfo.status;
+        const timestamp = weldInfo.Timestamp;
+        var tomonth=new Date(timestamp).getMonth()+1;
+        var toyear=new Date(timestamp).getFullYear();
+        var todate=new Date(timestamp).getDate();
+        var hours = new Date(timestamp).getHours();
+        var minutes = new Date(timestamp).getMinutes();
+        minutes = minutes <= 9 ? '0' + minutes : minutes;
+        var original_date=todate+'.'+tomonth+'.'+toyear + " " + hours + ":"+minutes;
+        const particle = weldInfo.PartArticleNumber;
 
-//Tässä haetaan yksittäinen hitsin lisätiedot klikkauksella
+        console.log(`AIKA VALUE: ${original_date}`);
+        
+        if (state === 'NotOk') {// jos state on NotOk laitetaan noOkWelds arraylistiin. 
+          notOkWelds.add(JSON.stringify({
+            id: id,
+            time: original_date,
+            particle: particle,
+            //status: weldInfo.Status
+          }));
+        }
+      })
+    });
+
+    const uniqueNotOkWelds = Array.from(notOkWelds).map(w => JSON.parse(w));
+    console.log(`Found ${uniqueNotOkWelds.length} unique NotOk welds.`);
+
+    const newNotOkWelds = uniqueNotOkWelds.filter(w => !sentEmails.some(emailInfo => emailInfo.weldIds.includes(w.id)));
+    if (newNotOkWelds.length > 0) { //newNotOkWeldsin ollessa muuta kuin tyhjÃƒÆ’Ã‚Â¤, lÃƒÆ’Ã‚Â¤hdetÃƒÆ’Ã‚Â¤ÃƒÆ’Ã‚Â¤n kutsumaan sÃƒÆ’Ã‚Â¤hkÃƒÆ’Ã‚Â¶postin lÃƒÆ’Ã‚Â¤hetys postmetodia. 
+      // Send email to recipients
+      const response = await fetch('http://localhost:4000/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ notOkWelds: newNotOkWelds })
+      });
+      const emailResponse = await response.text();
+      console.log(emailResponse);
+    } else {
+      console.log('No new NotOk welds found');
+    }
+
+    res.send(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving welds');
+  }
+  
+})
+
+//TÃ¤ssÃ¤ haetaan yksittÃ¤inen hitsin lisÃ¤tiedot klikkauksella
 app.get('/welds/:weldId', async (req, res) => {
   const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}`;
   const headers = {
@@ -201,7 +269,7 @@ app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
   const explanation = req.query.explanation;
   const user = req.query.user;
   const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState?explanation=${explanation}&user=${user}`;
-  //console.log('url:', url);
+  console.log('url:', url);
   const headers = {
     'api_key': process.env.MY_API_KEY,
     'Accept': 'application/json',
@@ -211,18 +279,18 @@ app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
   console.log('params:', explanation);
   try {
     const response = await axios.post(url, null, { params: null, headers });
-    //console.log('response:', response.data);
+    console.log('response:', response.data);
     res.send(response.data);
   } catch (error) {
     console.error(error);
-    //console.log(error.response.data)
-    //console.log(error.response.status)
-    //console.log(error.response.headers)
+    console.log(error.response.data)
+    console.log(error.response.status)
+    console.log(error.response.headers)
     res.status(500).send(error);
   }
 });
 
-// part haku tapahtuu täällä
+// part haku tapahtuu tÃ¤Ã¤llÃ¤
 app.get('/api/v4/Parts/:partItemNumber/:partSerialNumber', async (req, res) => {
   const partItemNumber = req.params.partItemNumber;
   const partSerialNumber = req.params.partSerialNumber;
@@ -246,7 +314,7 @@ app.get('/api/v4/Parts/:partItemNumber/:partSerialNumber', async (req, res) => {
   }
 });
 
-//actual value haku tapahtuu täällä
+//actual value haku tapahtuu tÃ¤Ã¤llÃ¤
 
 app.get('/api/v4/Welds/:weldId/ActualValues', async (req, res) => {
   const weldId = req.params.weldId;
@@ -299,22 +367,52 @@ app.get('/welds/:weldId/Sections', async (req, res) => {
   const headers = {
     'api_key': process.env.MY_API_KEY,
     'Accept': 'application/json',
-    'Content-type' : 'application/json'
+    'Content-type': 'application/json'
   };
 
   try {
     const response = await axios.get(url, { headers });
     const sections = response.data.WeldData.Sections;
     const sectionDetails = [];
+    let previousDuration = 0;
+
+    // Include ActualValues array from the additional API endpoint
+    const actualValuesUrl = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
+    const actualValuesResponse = await axios.get(actualValuesUrl, { headers });
+    const actualValues = actualValuesResponse.data.ActualValues;
 
     for (let i = 0; i < sections.length; i++) {
-      const sectionNumber = sections[i].Number;
+      const sectionNumber = sections[i].SectionNumber;
       const sectionUrl = sections[i].Details.replace('{sectionid}', sectionNumber);
       const sectionResponse = await axios.get(sectionUrl, { headers });
-      sectionDetails.push(sectionResponse.data);
+      const sectionData = sectionResponse.data;
+
+      // Skip section if QMaster is not found
+      if (sectionData.SingleValueStats[5].Value === "0") {
+        i - 1;
+        continue;
+      }
+
+      // Filter ActualValues array based on TimeStamp value
+      const filteredActualValues = actualValues.filter(value => {
+        if (i === 0) {
+          return value.TimeStamp < sectionData.SingleValueStats[5].Value;
+        } else {
+          return value.TimeStamp < sectionData.SingleValueStats[5].Value;
+        }
+      });
+
+      sectionData.ActualValues = filteredActualValues;
+      sectionDetails.push(sectionData);
     }
 
-    res.json(sectionDetails);
+    // Create a new object with SectionDetails and ActualValues
+    const result = {
+      ActualValues: actualValues,
+      SectionDetails: sectionDetails
+    };
+
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).send(error);
@@ -324,7 +422,7 @@ app.get('/welds/:weldId/Sections', async (req, res) => {
 /////////////////
 //  EMAIL JSON //
 /////////////////
-//emails.json käsittelyyn
+//emails.json kÃ¤sittelyyn
 
 app.use(express.json());
 app.use(cors({
@@ -360,6 +458,7 @@ app.put('/emails', (req, res) => {
     // Update the emails property
     jsonData.emails = emails;
 
+    console.log(emails);
 
     // Write the updated data back to the emails.json file
     fs.writeFile('../src/components/content/emails.json', JSON.stringify(jsonData), 'utf8', (err) => {
