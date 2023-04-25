@@ -7,7 +7,7 @@ app.use(cors());
 const axios = require('axios');
 var http = require('http');
 app.use(express.json());
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({ extended: false }));
 const fs = require('fs');
 
 
@@ -16,20 +16,20 @@ let sentEmails = [];
 
 //Mailserverin luonti
 const transporter = nodeMailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: '587',
-    secure: false,
-    tls: {
-        ciphers: "SSLv3",
-        rejectUnauthorized: false,
-        },
-        //Autentikointiin tarvittavat tiedot .env tiedostossa. 
-    auth:{
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+  host: 'smtp.gmail.com',
+  port: '587',
+  secure: false,
+  tls: {
+    ciphers: "SSLv3",
+    rejectUnauthorized: false,
+  },
+  //Autentikointiin tarvittavat tiedot .env tiedostossa. 
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
-app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶postin lÃƒÂ¤hettÃƒÂ¤miselle
+app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÆ’Ã‚Â¤hkÃƒÆ’Ã‚Â¶postin lÃƒÆ’Ã‚Â¤hettÃƒÆ’Ã‚Â¤miselle
   const notOkWelds = req.body.notOkWelds;
   const recipients = JSON.parse(fs.readFileSync('../src/components/content/emails.json')); //alustetaan recipients lukemalla json tiedosto.
 
@@ -61,15 +61,15 @@ app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶
   };
 
   notOkWelds.forEach(weld => {
-    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//kÃƒÂ¤ydÃƒÂ¤ÃƒÂ¤n getistÃƒÂ¤ saadut notok hitsaukset lÃƒÂ¤pi
+    Mailoptions.text += `Weld Id: ${weld.id}, the partArticlenumber is ${weld.particle} and the timestamp was: ${weld.time}\n\n`;//kÃƒÆ’Ã‚Â¤ydÃƒÆ’Ã‚Â¤ÃƒÆ’Ã‚Â¤n getistÃƒÆ’Ã‚Â¤ saadut notok hitsaukset lÃƒÆ’Ã‚Â¤pi
   });
-  
- /* const filteredRecipients = {};
-  for (const [name, email] of Object.entries(recipients)) {
-    if (!sentEmails.some(emailInfo => emailInfo.email === email && emailInfo.weldIds.length === notOkWelds.length)) {
-      filteredRecipients[name] = email;
-    }
-  }*/ 
+
+  /* const filteredRecipients = {};
+   for (const [name, email] of Object.entries(recipients)) {
+     if (!sentEmails.some(emailInfo => emailInfo.email === email && emailInfo.weldIds.length === notOkWelds.length)) {
+       filteredRecipients[name] = email;
+     }
+   }*/
   for (const [name, email] of Object.entries(recipients)) {
     Mailoptions.to = email;
     console.log(`Sending email to: ${name} (${email})`);
@@ -98,17 +98,17 @@ app.post('/send-email', async (req, res) => { //POST metodi, sÃƒÂ¤hkÃƒÂ¶
     });
 });
 
-setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃ¤lein. 
+setInterval(() => {// Intervalli, joka kutsuu /weldsia tunnin vÃƒÂ¤lein. 
   fetch('http://localhost:4000/allwelds')
     .then(response => response.json())
     .then(data => {
-      // Do something with the data
+      
     })
     .catch(error => console.error(error));
-}, 60000);// Tunnin vÃ¤lein
+}, 36000000);// Tunnin vÃƒÂ¤lein
 
 //////////////////////////////
-//Tässä haetaan kaikki hitsit
+//TÃ¤ssÃ¤ haetaan kaikki hitsit
 //////////////////////////////
 
 app.get('/welds', async (req, res) => {
@@ -141,13 +141,16 @@ app.get('/welds', async (req, res) => {
         .then((response) => response.json())
         .then((detailsData) => {
           return {
-            ...weld,
-            id: weld.Id,
-            state: weld.State,
-            timestamp: weld.Timestamp,
-            duration: detailsData.Duration,
-            errors: detailsData.Errors,
-            welddata: detailsData.WeldData
+            Id: weld.Id,
+            State: weld.State,
+            Timestamp: weld.Timestamp,
+            Duration: detailsData.Duration,
+            PartSerialNumber: weld.PartSerialNumber,
+            PartArticleNumber: weld.PartArticleNumber,
+            ProcessingStepNumber: weld.ProcessingStepNumber,
+            Errors: detailsData.Errors,
+            LimitViolations: detailsData.LimitViolations,
+            Details: detailsData.WeldData
           };
         })
     );
@@ -172,10 +175,6 @@ app.get('/welds', async (req, res) => {
     res.status(500).send(error);
   }
 });
-//////////////////////////////
-//Tässä haetaan kaikki hitsit sähköpostin lähettämistä varten
-//////////////////////////////
-
 app.get('/allwelds', async (req, res) => {
   const url = 'http://weldcube.ky.local/api/v4/welds';
   const headers = {
@@ -223,7 +222,7 @@ app.get('/allwelds', async (req, res) => {
     console.log(`Found ${uniqueNotOkWelds.length} unique NotOk welds.`);
 
     const newNotOkWelds = uniqueNotOkWelds.filter(w => !sentEmails.some(emailInfo => emailInfo.weldIds.includes(w.id)));
-    if (newNotOkWelds.length > 0) { //newNotOkWeldsin ollessa muuta kuin tyhjÃƒÂ¤, lÃƒÂ¤hdetÃƒÂ¤ÃƒÂ¤n kutsumaan sÃƒÂ¤hkÃƒÂ¶postin lÃƒÂ¤hetys postmetodia. 
+    if (newNotOkWelds.length > 0) { //newNotOkWeldsin ollessa muuta kuin tyhjÃƒÆ’Ã‚Â¤, lÃƒÆ’Ã‚Â¤hdetÃƒÆ’Ã‚Â¤ÃƒÆ’Ã‚Â¤n kutsumaan sÃƒÆ’Ã‚Â¤hkÃƒÆ’Ã‚Â¶postin lÃƒÆ’Ã‚Â¤hetys postmetodia. 
       // Send email to recipients
       const response = await fetch('http://localhost:4000/send-email', {
         method: 'POST',
@@ -245,127 +244,185 @@ app.get('/allwelds', async (req, res) => {
   }
   
 })
-  
-  
-  //Tässä haetaan yksittäinen hitsin lisätiedot klikkauksella
-    app.get('/welds/:weldId', async (req, res) => {
-      const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}`;
-      const headers = {
+
+//TÃ¤ssÃ¤ haetaan yksittÃ¤inen hitsin lisÃ¤tiedot klikkauksella
+app.get('/welds/:weldId', async (req, res) => {
+  const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}`;
+  const headers = {
+    'api_key': process.env.MY_API_KEY,
+    'Accept': 'application/json',
+    'Content-type': 'application/json'
+  };
+
+  try {
+    const response = await fetch(url, { headers });
+    const data = await response.json();
+    res.send(data);
+  } catch (error) {
+    console.error(error.response);
+    res.status(500).send(error);
+  }
+});
+
+//change state
+app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
+  const explanation = req.query.explanation;
+  const user = req.query.user;
+  const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState?explanation=${explanation}&user=${user}`;
+  console.log('url:', url);
+  const headers = {
+    'api_key': process.env.MY_API_KEY,
+    'Accept': 'application/json',
+    'Content-type': 'application/json'
+  };
+
+  console.log('params:', explanation);
+  try {
+    const response = await axios.post(url, null, { params: null, headers });
+    console.log('response:', response.data);
+    res.send(response.data);
+  } catch (error) {
+    console.error(error);
+    console.log(error.response.data)
+    console.log(error.response.status)
+    console.log(error.response.headers)
+    res.status(500).send(error);
+  }
+});
+
+// part haku tapahtuu tÃ¤Ã¤llÃ¤
+app.get('/api/v4/Parts/:partItemNumber/:partSerialNumber', async (req, res) => {
+  const partItemNumber = req.params.partItemNumber;
+  const partSerialNumber = req.params.partSerialNumber;
+
+  const apiKey = req.get('api_key');
+  const acceptHeader = req.get('Accept');
+  const url = `http://weldcube.ky.local/api/v4/Parts/${partItemNumber}/${partSerialNumber}`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
         'api_key': process.env.MY_API_KEY,
         'Accept': 'application/json',
-        'Content-type' : 'application/json'
-      };
-    
-      try {
-        const response = await fetch(url, { headers });
-        const data = await response.json();
-        res.send(data);
-      } catch (error) {
-        console.error(error.response);
-        res.status(500).send(error);
-      }
+      },
     });
-  
-    //change state
-    app.post('/api/v4/Welds/:weldId/ChangeState', async (req, res) => {
-      const explanation = req.query.explanation;
-      const user = req.query.user;
-      const url = `http://weldcube.ky.local/api/v4/Welds/${req.params.weldId}/ChangeState?explanation=${explanation}&user=${user}`;
-      console.log('url:', url);
-      const headers = {
+
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
+//actual value haku tapahtuu tÃ¤Ã¤llÃ¤
+
+app.get('/api/v4/Welds/:weldId/ActualValues', async (req, res) => {
+  const weldId = req.params.weldId;
+
+  const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
         'api_key': process.env.MY_API_KEY,
         'Accept': 'application/json',
-        'Content-type' : 'application/json'
-      };
-  
-      console.log('params:', explanation);
-      try {
-        const response = await axios.post(url, null, { params: null, headers });
-        console.log('response:', response.data);
-        res.send(response.data);
-      } catch (error) {
-        console.error(error);
-        console.log(error.response.data)
-        console.log(error.response.status)
-        console.log(error.response.headers)
-        res.status(500).send(error);
-      }
-    });
-  
-    // part haku tapahtuu täällä
-    app.get('/api/v4/Parts/:partItemNumber/:partSerialNumber', async (req, res) => {
-      const partItemNumber = req.params.partItemNumber;
-      const partSerialNumber = req.params.partSerialNumber;
-    
-      const apiKey = req.get('api_key');
-      const acceptHeader = req.get('Accept');
-      const url = `http://weldcube.ky.local/api/v4/Parts/${partItemNumber}/${partSerialNumber}`;
-    
-      try {
-        const response = await axios.get(url, {
-          headers: {
-            'api_key': process.env.MY_API_KEY,
-            'Accept': 'application/json',
-          },
-        });
-    
-        res.json(response.data);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send(error);
-      }
+      },
     });
 
-    //actual value haku tapahtuu täällä
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
 
-  app.get('/api/v4/Welds/:weldId/ActualValues', async (req, res) => {
-    const weldId = req.params.weldId;
 
-    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
-  
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          'api_key': process.env.MY_API_KEY,
-          'Accept': 'application/json',
-        },
+//section tiedot
+
+app.get('/api/v4/Welds/:weldId/Sections/:sectionNumber', async (req, res) => {
+  const weldId = req.params.weldId;
+  const sectionNumber = req.params.sectionNumber;
+
+  const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/Sections/${sectionNumber}`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'api_key': process.env.MY_API_KEY,
+        'Accept': 'application/json',
+      },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
+//Santeri sections
+app.get('/welds/:weldId/Sections', async (req, res) => {
+  const weldId = req.params.weldId;
+  const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}`;
+  const headers = {
+    'api_key': process.env.MY_API_KEY,
+    'Accept': 'application/json',
+    'Content-type': 'application/json'
+  };
+
+  try {
+    const response = await axios.get(url, { headers });
+    const sections = response.data.WeldData.Sections;
+    const sectionDetails = [];
+    let previousDuration = 0;
+
+    // Include ActualValues array from the additional API endpoint
+    const actualValuesUrl = `http://weldcube.ky.local/api/v4/Welds/${weldId}/ActualValues`;
+    const actualValuesResponse = await axios.get(actualValuesUrl, { headers });
+    const actualValues = actualValuesResponse.data.ActualValues;
+
+    for (let i = 0; i < sections.length; i++) {
+      const sectionNumber = sections[i].SectionNumber;
+      const sectionUrl = sections[i].Details.replace('{sectionid}', sectionNumber);
+      const sectionResponse = await axios.get(sectionUrl, { headers });
+      const sectionData = sectionResponse.data;
+
+      // Skip section if QMaster is not found
+      if (sectionData.SingleValueStats[5].Value === "0") {
+        i - 1;
+        continue;
+      }
+
+      // Filter ActualValues array based on TimeStamp value
+      const filteredActualValues = actualValues.filter(value => {
+        if (i === 0) {
+          return value.TimeStamp < sectionData.SingleValueStats[5].Value;
+        } else {
+          return value.TimeStamp < sectionData.SingleValueStats[5].Value;
+        }
       });
-  
-      res.json(response.data);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send(error);
-    }
-  });
-    
 
-  //section tiedot
-
-  app.get('/api/v4/Welds/:weldId/Sections/:sectionNumber', async (req, res) => {
-    const weldId = req.params.weldId;
-    const sectionNumber = req.params.sectionNumber;
-  
-    const url = `http://weldcube.ky.local/api/v4/Welds/${weldId}/Sections/${sectionNumber}`;
-  
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          'api_key': process.env.MY_API_KEY,
-          'Accept': 'application/json',
-        },
-      });
-  
-      res.json(response.data);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send(error);
+      sectionData.ActualValues = filteredActualValues;
+      sectionDetails.push(sectionData);
     }
-  });
-  
+
+    // Create a new object with SectionDetails and ActualValues
+    const result = {
+      ActualValues: actualValues,
+      SectionDetails: sectionDetails
+    };
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
 /////////////////
 //  EMAIL JSON //
 /////////////////
-//emails.json käsittelyyn
+//emails.json kÃ¤sittelyyn
 
 app.use(express.json());
 app.use(cors({
@@ -420,4 +477,4 @@ app.put('/emails', (req, res) => {
 
 
 
-  app.listen(4000, () => console.log('Server running on port 4000'));
+app.listen(4000, () => console.log('Server running on port 4000'));
