@@ -137,7 +137,7 @@ function Content({ toggle, isOpen }) {
               <Col xs={'auto'} onClick={showModal} style={{ zIndex: "2" }}>
                 <FontAwesomeIcon icon={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? faExclamation : faCircleCheck} size="4x" style={{ color: weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "#ff8a8a" : "#95d795" }} className={weld.State === "NotOk" || weld.State === 'NotOkEdited' ? "ms-4 me-4" : ""} />
               </Col>
-              <Col xs={'auto'} className="text-secondary lh-sm">Date: {formatTimestamp(weld.Timestamp)}<br/>Name: {weld.PartArticleNumber === '' ? '' : weld.PartArticleNumber} {weld.PartSerialNumber === '' ? 'N/A' : '#' + weld.PartSerialNumber}<br />Status: {weld.State}</Col>
+              <Col xs={'auto'} className="text-secondary lh-sm">Date: {formatTimestamp(weld.Timestamp)}<br />Name: {weld.PartArticleNumber === '' ? '' : weld.PartArticleNumber} {weld.PartSerialNumber === '' ? 'N/A' : '#' + weld.PartSerialNumber}<br />Status: {weld.State}</Col>
             </Row>
 
             <Col xs={'auto'} className="d-none d-lg-block">

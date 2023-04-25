@@ -35,13 +35,9 @@ const Sidebar = ({ toggle, isOpen }) => {
           <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faEnvelope} className="me-2" />Mail List</Nav.Link>
         </LinkContainer>
 
-        <LinkContainer to='http://weldcube.ky.local/Home/Dashboard'>
-          <Nav.Link className="text-secondary d-none d-sm-block"><FontAwesomeIcon icon={faLink} className="me-2" style={{fontSize:"12px"}} />WeldCube</Nav.Link>
-        </LinkContainer>
+        <a href="http://weldcube.ky.local/Home/Dashboard" target="_blank" rel="noopener noreferrer" className="ms-3 text-secondary d-none d-sm-block my-2"><FontAwesomeIcon icon={faLink} className="me-2" style={{fontSize:"12px"}} />WeldCube</a>
+        <a href="http://weldcube.ky.local/Home/Dashboard" target="_blank" rel="noopener noreferrer" className="ms-3 text-secondary d-block d-sm-none my-2"><FontAwesomeIcon icon={faLink} className="me-2" style={{fontSize:"12px"}} />WeldCube</a>
 
-        <LinkContainer to='http://weldcube.ky.local/Home/Dashboard' onClick={toggle}>
-          <Nav.Link className="text-secondary d-block d-sm-none"><FontAwesomeIcon icon={faLink} className="me-2" />WeldCube</Nav.Link>
-        </LinkContainer>
       </Nav>
       </div>
   );
