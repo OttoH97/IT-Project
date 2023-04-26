@@ -127,7 +127,7 @@ function Content({ toggle, isOpen }) {
 
             <Col xs={'auto'} className="d-none d-lg-block">
               {weld.Details?.LimitViolations?.length > 0 && (
-                <span className="d-block p-1 rounded fw-bold text-white me-3" style={{ border: "1px solid rgb(255, 138, 138)", backgroundColor: "rgba(255, 138, 138, 0.82)", fontSize: "12px" }}>
+                <span className="d-block p-1 rounded fw-bold text-white me-3" style={{ border: weld.State?.trim().toLowerCase() === 'okedited' ? "1px solid rgb(130, 130, 130)" :"1px solid rgb(255, 138, 138)", backgroundColor: weld.State?.trim().toLowerCase() === 'okedited' ? '#808080b2' : "rgba(255, 138, 138, 0.82)", fontSize: "12px" }}>
                   Violations: {weld.Details.LimitViolations.map((violation, index) => (
                     <span key={index}>{violation.ValueType} {violation.ViolationType === "Upper" ? "++" : (violation.ViolationType === "Lower" ? "--" : "")} </span>
                   ))}
